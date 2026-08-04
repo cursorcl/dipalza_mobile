@@ -302,6 +302,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
               controller: _cantidadController,
               focusNode: _cantidadFocusNode,
               keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -328,6 +329,8 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                 _excedeStock = cantidad > _stockDisponible);
                 _recalcularTotal();
               },
+              onSubmitted: (_) =>
+                  FocusScope.of(context).requestFocus(_descuentoFocusNode),
             ),
 
             if (_esNumerado) ...[
@@ -348,6 +351,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
               controller: _descuentoController,
               focusNode: _descuentoFocusNode,
               keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
@@ -364,6 +368,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                 ),
               ),
               onChanged: (_) => _recalcularTotal(),
+              onSubmitted: (_) => _descuentoFocusNode.unfocus(),
             ),
 
             const SizedBox(height: 14),
