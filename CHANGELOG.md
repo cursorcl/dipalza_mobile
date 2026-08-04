@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.4.1...v2.5.0) (2026-08-04)
+
+
+### Features
+
+* botón Siguiente en teclado numérico de Cantidad y Descuento ([#16](https://github.com/cursorcl/dipalza_mobile/issues/16)) ([043132d](https://github.com/cursorcl/dipalza_mobile/commit/043132d51f350a290306b248c78fa153c8439ca1))
+
 ## [2.4.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.4.0...v2.4.1) (2026-07-23)
 
 
