@@ -1,3 +1,10 @@
+## [2.5.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.1...v2.5.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* permite cerrar el teclado tocando fuera o con scroll en edición de item ([#18](https://github.com/cursorcl/dipalza_mobile/issues/18)) ([591cc17](https://github.com/cursorcl/dipalza_mobile/commit/591cc176806060ccd2a2cd53a7b58a83ca33e064))
+
 ## [2.5.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.0...v2.5.1) (2026-08-05)
 
 
