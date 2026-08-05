@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.6.0...v2.6.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* renombra dipalza.apk a dipalza-app.apk en el script remoto ([#20](https://github.com/cursorcl/dipalza_mobile/issues/20)) ([420baa6](https://github.com/cursorcl/dipalza_mobile/commit/420baa6a5749a91fc0ad514838a9c2e23ec1bb0e))
+
 # [2.6.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.2...v2.6.0) (2026-08-05)
 
 
