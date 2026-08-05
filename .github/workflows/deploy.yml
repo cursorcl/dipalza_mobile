@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión (tag de la GitHub Release) a desplegar, ej. v2.5.2'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_VERSION: ${{ inputs.version }}
+      SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+      SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+      SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || '22' }}
+    steps:
+      - name: Validar formato de la versión
+        run: |
+          if ! [[ "$DEPLOY_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "ERROR: version '$DEPLOY_VERSION' no tiene un formato válido (esperado algo como v2.5.2, opcionalmente con sufijo -algo)" >&2
+            exit 1
+          fi
+          echo "Versión '$DEPLOY_VERSION' tiene formato válido."
+
+      - name: Verificar que la release existe y descargar el apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$DEPLOY_VERSION" \
+            --repo "${{ github.repository }}" \
+            --pattern "dipalza-release-*.apk" \
+            --dir /tmp/deploy-artifact \
+            --clobber
+
+      - name: Configurar agente SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Agregar el host a known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Crear carpeta de la versión en el servidor
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p /opt/dipalza-app/downloads/releases/$DEPLOY_VERSION"
+
+      - name: Copiar el apk al servidor
+        run: |
+          APK_FILE=$(ls /tmp/deploy-artifact/dipalza-release-*.apk)
+          scp -P "$SSH_PORT" "$APK_FILE" \
+            "$SSH_USER@$SSH_HOST:/opt/dipalza-app/downloads/releases/$DEPLOY_VERSION/dipalza.apk"
+
+      - name: Ejecutar el deploy remoto (actualiza el symlink)
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "/opt/dipalza-app/scripts/deploy-apk-remote.sh $DEPLOY_VERSION"
