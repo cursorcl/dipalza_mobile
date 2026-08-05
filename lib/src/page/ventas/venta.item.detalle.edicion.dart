@@ -197,8 +197,12 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       ),
 
       // ✅ ListView evita RenderFlex overflow con teclado abierto
-      body: SafeArea(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: SafeArea(
         child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 7),
           children: [
             // =========================
@@ -378,6 +382,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
             // =========================
             _buildResumenInferior(),
           ],
+        ),
         ),
       ),
     );
