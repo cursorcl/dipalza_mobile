@@ -37,9 +37,16 @@ class _ClientesPageState extends State<ClientesPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: Icon(
+            widget.isForSelection ? Icons.arrow_back : Icons.menu,
+            color: Colors.white,
+          ),
           onPressed: () {
-            AppScaffoldKey.homeKey.currentState?.openDrawer();
+            if (widget.isForSelection) {
+              AppNavigator.pop();
+            } else {
+              AppScaffoldKey.homeKey.currentState?.openDrawer();
+            }
           },
         ),
         centerTitle: true,
@@ -167,7 +174,8 @@ class _ClientesPageState extends State<ClientesPage> {
         backgroundColor: colorRojoBase(),
         foregroundColor: Colors.white,
       ),
-      title: const Text('No existen Clientes para la conbinación Vendedor / Ruta.'),
+      title: const Text(
+          'No tienes clientes asignados. Contacta a administración si esto no es correcto.'),
     ));
   }
 
