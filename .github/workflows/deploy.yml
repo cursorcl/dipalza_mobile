@@ -57,7 +57,7 @@ jobs:
         run: |
           APK_FILE=$(ls /tmp/deploy-artifact/dipalza-release-*.apk)
           scp -P "$SSH_PORT" "$APK_FILE" \
-            "$SSH_USER@$SSH_HOST:/opt/dipalza-app/downloads/releases/$DEPLOY_VERSION/dipalza.apk"
+            "$SSH_USER@$SSH_HOST:/opt/dipalza-app/downloads/releases/$DEPLOY_VERSION/dipalza-app.apk"
 
       - name: Ejecutar el deploy remoto (actualiza el symlink)
         run: |
