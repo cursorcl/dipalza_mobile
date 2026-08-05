@@ -117,11 +117,12 @@ Sin `sudo`, sin `systemctl`: el usuario `deploy-dipalza` ya es dueño de `/opt/d
 
 ### `dipalza_server`: nueva clase `DownloadsStaticConfig`
 
-Nuevo archivo `dipalza/src/main/java/cl/eos/dipalza/config/DownloadsStaticConfig.java`, mismo paquete y mismo estilo que `CorsConfig.java` (una sola responsabilidad, sin externalizar la ruta a `application.yml` — se sigue el patrón ya usado en `CorsConfig`, que también hardcodea su valor):
+Nuevo archivo `dipalza/src/main/java/cl/eos/dipalza/config/DownloadsStaticConfig.java`, mismo paquete que `CorsConfig.java`. A diferencia de `CorsConfig` (que hardcodea su valor porque no toca el filesystem), acá la ruta se externaliza vía `@Value` — el proyecto ya tiene precedente de testear `@Configuration` con un `@SpringBootTest(classes = {...})` acotado (`RestTemplateConfigTest`), y para poder testear el resource handler sirviendo un archivo real sin escribir en `/opt/dipalza-app/downloads/` (no escribible sin sudo en una máquina de desarrollo local, a diferencia del runner de CI que corre como root) hace falta poder apuntar la ruta a un directorio temporal en el test:
 
 ```java
 package cl.eos.dipalza.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -129,15 +130,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class DownloadsStaticConfig implements WebMvcConfigurer {
 
+    @Value("${app.downloads.location:file:/opt/dipalza-app/downloads/}")
+    private String downloadsLocation;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/downloads/**")
-                .addResourceLocations("file:/opt/dipalza-app/downloads/");
+                .addResourceLocations(downloadsLocation);
     }
 }
 ```
 
-Spring Boot no falla si `/opt/dipalza-app/downloads/` no existe todavía al arrancar (ni en local ni en CI) — el resource handler simplemente responde 404 hasta que el archivo exista. No afecta a los tests existentes ni al entorno de desarrollo local.
+Sin agregar nada a `application.yml`: el default (`file:/opt/dipalza-app/downloads/`) ya cubre producción y desarrollo local (Spring Boot no falla si la carpeta no existe todavía — el resource handler simplemente responde 404 hasta que el archivo exista). Solo el test de este config sobreescribe `app.downloads.location` apuntando a un `@TempDir`.
 
 ### `dipalza_server`: actualizar `docs/deploy/server-setup.md`
 
