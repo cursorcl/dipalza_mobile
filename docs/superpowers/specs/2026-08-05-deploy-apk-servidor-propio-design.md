@@ -143,6 +143,16 @@ public class DownloadsStaticConfig implements WebMvcConfigurer {
 
 Sin agregar nada a `application.yml`: el default (`file:/opt/dipalza-app/downloads/`) ya cubre producción y desarrollo local (Spring Boot no falla si la carpeta no existe todavía — el resource handler simplemente responde 404 hasta que el archivo exista). Solo el test de este config sobreescribe `app.downloads.location` apuntando a un `@TempDir`.
 
+### `dipalza_server`: permitir `/downloads/**` sin autenticación
+
+Hallazgo importante: el proyecto tiene Spring Security activo (`SecurityConfigProdSec`, `SecurityConfigDevSec`, `SecurityConfigNoSec`, uno por perfil). En `SecurityConfigProdSec` y `SecurityConfigDevSec`, cualquier ruta que no matchee una regla `permitAll()` previa cae en `.anyRequest().authenticated()` — y `/downloads/dipalza.apk` no matchea ninguna de las reglas existentes (el catch-all de SPA `/{path:[^\\.]*}` excluye explícitamente rutas con punto, por diseño, para no capturar archivos estáticos con extensión). Sin este cambio, descargar el APK devolvería 401 — justo el caso de uso que se necesita (instalar la app *antes* de poder loguearse). `SecurityConfigNoSec` (perfil `dev-nosec`) ya permite todo (`anyRequest().permitAll()`), no requiere cambio.
+
+En ambos archivos (`SecurityConfigProdSec.java` y `SecurityConfigDevSec.java`), agregar una línea junto a las demás reglas `permitAll()` de recursos estáticos:
+
+```java
+.requestMatchers("/downloads/**").permitAll()
+```
+
 ### `dipalza_server`: actualizar `docs/deploy/server-setup.md`
 
 Agregar una sección nueva ("11. Setup para el deploy del APK") con los pasos manuales de una sola vez, análoga a los pasos 5 y 8 ya existentes para el jar:
