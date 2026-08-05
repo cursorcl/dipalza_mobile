@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.2...v2.6.0) (2026-08-05)
+
+
+### Features
+
+* agrega deploy manual del APK al servidor propio ([#19](https://github.com/cursorcl/dipalza_mobile/issues/19)) ([e285836](https://github.com/cursorcl/dipalza_mobile/commit/e285836e16b5b9cd0bbf52fa68523a71e7510e46))
+
 ## [2.5.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.1...v2.5.2) (2026-08-05)
 
 
