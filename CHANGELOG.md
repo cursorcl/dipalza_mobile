@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.5.0...v2.5.1) (2026-08-05)
+
+
+### Bug Fixes
+
+* corrige navegación y mensaje vacío en selección de cliente para venta ([#17](https://github.com/cursorcl/dipalza_mobile/issues/17)) ([b1b954b](https://github.com/cursorcl/dipalza_mobile/commit/b1b954b9daac291ae6fcdb0e7d9569f2a8375b61))
+
 # [2.5.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.4.1...v2.5.0) (2026-08-04)
 
 
