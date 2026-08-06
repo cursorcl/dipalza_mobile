@@ -18,6 +18,7 @@ import '../../share/prefs_usuario.dart';
 import '../../utils/jwt_util.dart';
 import '../../utils/utils.dart';
 import '../../widget/connectivity_banner.widget.dart';
+import 'widgets/servidor_config_fields.dart';
 
 enum ConnectionStatus { unknown, ok, invalid }
 
@@ -31,7 +32,8 @@ class ConfiguracionPage extends StatefulWidget {
 
 class _ConfiguracionPageState extends State<ConfiguracionPage> {
   final _prefs = PreferenciasUsuario();
-  late TextEditingController _urlController;
+  late TextEditingController _hostController;
+  late TextEditingController _puertoController;
   List<RutasModel> _rutasAsignadas = [];
   DateTime? _fechaTrabajo;
   double? _iva;
@@ -44,11 +46,10 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
   @override
   void initState() {
     super.initState();
-    _urlController = TextEditingController(text: _prefs.urlServicio);
+    _hostController = TextEditingController(text: _prefs.servidorHost);
+    _puertoController = TextEditingController(text: _prefs.servidorPuerto);
     // Estado inicial: si hay URL, no asumimos conectividad hasta probar
-    _status = (_prefs.urlServicio.isEmpty)
-        ? ConnectionStatus.unknown
-        : ConnectionStatus.unknown;
+    _status = ConnectionStatus.unknown;
     _cargarRutasAsignadas();
   }
 
@@ -73,7 +74,8 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
 
   @override
   void dispose() {
-    _urlController.dispose();
+    _hostController.dispose();
+    _puertoController.dispose();
     super.dispose();
   }
 
@@ -116,49 +118,6 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     }
   }
 
-  // ---------- Normalización y validación ----------
-
-  String? _validateUrl(String input) {
-    final t = input;
-    if (t.isEmpty) return 'La dirección no puede estar vacía';
-
-    Uri? uri;
-    try {
-      uri = Uri.parse(t);
-    } catch (_) {
-      return 'Formato de URL inválido';
-    }
-    if (uri.scheme != 'http' && uri.scheme != 'https') {
-      return 'Esquema no admitido (use http o https)';
-    }
-    if ((uri.host.isEmpty)) {
-      return 'Host inválido';
-    }
-    // Puerto opcional. Si no hay puerto, ok; si hay, que sea válido.
-    if (uri.hasPort && (uri.port <= 0 || uri.port > 65535)) {
-      return 'Puerto inválido';
-    }
-    return null; // válido
-  }
-
-  /// Quita esquema y trailing slash. Devuelve 'host:puerto'.
-  String toStoreFormat(String input) {
-    var t = input.trim();
-    t = t.replaceAll(RegExp(r'^https?://', caseSensitive: false), '');
-    t = t.replaceAll(RegExp(r'/+$'), '');
-    return t;
-  }
-
-  /// Dado 'host:puerto' devuelve 'http://host:puerto' para UI.
-  String toDisplayFormat(String stored) {
-    if (stored.isEmpty) return '';
-    return 'http://$stored';
-  }
-
-  /// Construye la URI real para /health desde 'host:puerto'.
-  Uri buildPingUriFromStored(String stored) {
-    return Uri.parse('http://$stored').replace(path: '/ping');
-  }
   // ---------- Prueba de conexión (HEAD/GET /health o raíz) ----------
 
   Future<bool> _pingServer(String baseUrl,
@@ -307,7 +266,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
   }
 
   Future<void> _copiar() async {
-    final text = _prefs.urlServicio;
+    final text = _prefs.urlBase;
     if (text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
@@ -319,7 +278,24 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
 
   Future<void> _openEditServerSheet() async {
     final formKey = GlobalKey<FormState>();
-    _urlController.text = toDisplayFormat(_prefs.urlServicio);
+    _hostController.text = _prefs.servidorHost;
+    _puertoController.text = _prefs.servidorPuerto;
+    bool sheetIsHttps = _prefs.servidorEsquema != 'http';
+
+    String candidatoUrlBase() {
+      final host = _hostController.text.trim();
+      final puerto = _puertoController.text.trim();
+      final esquema = sheetIsHttps ? 'https' : 'http';
+      return puerto.isEmpty ? '$esquema://$host' : '$esquema://$host:$puerto';
+    }
+
+    void aplicarRecienteAloscampos(String urlBase) {
+      final uri = Uri.tryParse(urlBase);
+      if (uri == null || uri.host.isEmpty) return;
+      _hostController.text = uri.host;
+      _puertoController.text = uri.hasPort ? '${uri.port}' : '';
+      sheetIsHttps = uri.scheme != 'http';
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -327,134 +303,131 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
       showDragHandle: true,
       builder: (ctx) {
         final viewInsets = MediaQuery.of(ctx).viewInsets;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: viewInsets.bottom + 16,
-            top: 8,
-          ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Dirección del servidor',
-                    style: Theme.of(ctx).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _urlController,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
-                    hintText: 'http://192.168.0.8:8099 o 192.168.0.8:8099',
-                    helperText: 'Ejemplo: http://192.168.0.8:8080',
-                    prefixIcon: Icon(Icons.dns),
+        return StatefulBuilder(builder: (ctx, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: viewInsets.bottom + 16,
+              top: 8,
+            ),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Dirección del servidor',
+                      style: Theme.of(ctx).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  ServidorConfigFields(
+                    hostController: _hostController,
+                    puertoController: _puertoController,
+                    isHttps: sheetIsHttps,
+                    onEsquemaChanged: (value) =>
+                        setModalState(() => sheetIsHttps = value),
                   ),
-                  validator: (v) => _validateUrl(v ?? ''),
-                  onFieldSubmitted: (_) => FocusScope.of(ctx).unfocus(),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _probando
-                            ? null
-                            : () async {
-                                final error = _validateUrl(_urlController.text);
-                                if (error != null) {
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _probando
+                              ? null
+                              : () async {
+                                  if (!(formKey.currentState?.validate() ??
+                                      false)) {
+                                    return;
+                                  }
+                                  setState(() => _probando = true);
+                                  final ok =
+                                      await _pingServer(candidatoUrlBase());
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _probando = false;
+                                    _status = ok
+                                        ? ConnectionStatus.ok
+                                        : ConnectionStatus.invalid;
+                                  });
                                   if (!ctx.mounted) return;
                                   ScaffoldMessenger.of(ctx).showSnackBar(
-                                      SnackBar(content: Text(error)));
-                                  return;
-                                }
-                                setState(() => _probando = true);
-                                final ok =
-                                    await _pingServer(_urlController.text);
-                                if (!mounted) return;
-                                setState(() {
-                                  _probando = false;
-                                  _status = ok
-                                      ? ConnectionStatus.ok
-                                      : ConnectionStatus.invalid;
-                                });
-                                if (!ctx.mounted) return;
-                                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                                    content: Text(ok
-                                        ? 'Conexión verificada'
-                                        : 'No se pudo conectar')));
-                              },
-                        icon: _probando
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.wifi_tethering),
-                        label: const Text('Probar conexión'),
+                                      SnackBar(
+                                          content: Text(ok
+                                              ? 'Conexión verificada'
+                                              : 'No se pudo conectar')));
+                                },
+                          icon: _probando
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                )
+                              : const Icon(Icons.wifi_tethering),
+                          label: const Text('Probar conexión'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        final error = _validateUrl(_urlController.text);
-                        if (error != null) {
+                      const SizedBox(width: 12),
+                      FilledButton.icon(
+                        onPressed: () {
+                          if (!(formKey.currentState?.validate() ?? false)) {
+                            return;
+                          }
+                          _prefs.servidorHost = _hostController.text.trim();
+                          _prefs.servidorPuerto =
+                              _puertoController.text.trim();
+                          _prefs.servidorEsquema =
+                              sheetIsHttps ? 'https' : 'http';
+                          ApiClient().dio.options.baseUrl = _prefs.urlBase;
+                          _prefs.recentEndpoints = <String>[
+                            _prefs.urlBase,
+                            ..._prefs.recentEndpoints
+                                .where((e) => e != _prefs.urlBase),
+                          ].take(6).toList();
+                          if (!mounted) return;
+                          setState(() {}); // refresca la ficha principal
                           if (!ctx.mounted) return;
-                          ScaffoldMessenger.of(ctx)
-                              .showSnackBar(SnackBar(content: Text(error)));
-                          return;
-                        }
-                        _prefs.urlServicio = toStoreFormat(_urlController.text);
-                        ApiClient().dio.options.baseUrl = 'http://${_prefs.urlServicio}';
-                        _prefs.recentEndpoints.insert(0, _urlController.text);
-                        if (!mounted) return;
-                        setState(() {}); // refresca la ficha principal
-                        if (!ctx.mounted) return;
-                        AppNavigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Dirección guardada')));
-                      },
-                      icon: const Icon(Icons.save),
-                      label: const Text('Guardar'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Historial (si implementas getRecentEndpoints)
-                Builder(builder: (_) {
-                  final recents = _prefs.recentEndpoints;
-                  if (recents.isEmpty) return const SizedBox.shrink();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Divider(height: 24),
-                      Text('Recientes',
-                          style: Theme.of(ctx).textTheme.titleSmall),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: recents.take(6).map((e) {
-                          return ActionChip(
-                            avatar: const Icon(Icons.history, size: 18),
-                            label: Text(e, overflow: TextOverflow.ellipsis),
-                            onPressed: () {
-                              _urlController.text = e;
-                            },
-                          );
-                        }).toList(),
+                          AppNavigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Dirección guardada')));
+                        },
+                        icon: const Icon(Icons.save),
+                        label: const Text('Guardar'),
                       ),
                     ],
-                  );
-                }),
-              ],
+                  ),
+                  const SizedBox(height: 8),
+                  Builder(builder: (_) {
+                    final recents = _prefs.recentEndpoints;
+                    if (recents.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(height: 24),
+                        Text('Recientes',
+                            style: Theme.of(ctx).textTheme.titleSmall),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: recents.take(6).map((e) {
+                            return ActionChip(
+                              avatar: const Icon(Icons.history, size: 18),
+                              label: Text(e, overflow: TextOverflow.ellipsis),
+                              onPressed: () => setModalState(
+                                  () => aplicarRecienteAloscampos(e)),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        });
       },
     );
   }
@@ -509,9 +482,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
               ),
               title: const Text('Dirección del servidor'),
               subtitle: Text(
-                _prefs.urlServicio.isEmpty
-                    ? 'No configurada'
-                    : _prefs.urlServicio,
+                _prefs.urlBase.isEmpty ? 'No configurada' : _prefs.urlBase,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -520,7 +491,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                 children: [
                   IconButton(
                     tooltip: 'Copiar',
-                    onPressed: _prefs.urlServicio.isEmpty ? null : _copiar,
+                    onPressed: _prefs.urlBase.isEmpty ? null : _copiar,
                     icon: const Icon(Icons.copy),
                   ),
                   const Icon(Icons.chevron_right),

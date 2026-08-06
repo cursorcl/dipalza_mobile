@@ -244,7 +244,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Diplaza App.',
       navigatorKey: AppNavigator.navigatorKey,
       onGenerateRoute: AppRouter.generateRoute,
-      home: PreferenciasUsuario().urlServicio.isEmpty
+      home: PreferenciasUsuario().servidorHost.isEmpty
           ? const ServerSetupPage()
           : const AuthGate(),
       theme: AppTheme.lightTheme,

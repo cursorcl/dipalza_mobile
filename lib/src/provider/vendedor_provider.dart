@@ -19,7 +19,7 @@ class VenderdorProvider {
 
     try {
       final resp = await _dio.post(
-        'http://${prefs.urlServicio}/auth/login',
+        '${prefs.urlBase}/auth/login',
         data: loginModelToJson(login),
         options: Options(
           contentType: Headers.jsonContentType,
