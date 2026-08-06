@@ -44,7 +44,7 @@ class ConnectivityService with ChangeNotifier {
     final prefs = PreferenciasUsuario();
 
     try {
-      final response = await _dio.get('http://${prefs.urlServicio}/ping');
+      final response = await _dio.get('${prefs.urlBase}/ping');
       return response.statusCode == 200;
     } catch (e) {
       return false;

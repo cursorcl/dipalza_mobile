@@ -29,6 +29,26 @@ class PreferenciasUsuario {
     _refreshTokenInMemory = await _storage.read(key: 'refreshToken') ?? '';
     _passwordInMemory = await _storage.read(key: 'password') ?? '';
     _userNameInMemory = await _storage.read(key: 'userName') ?? '';
+
+    _migrarUrlServicioLegado();
+  }
+
+  /// Migra el valor legado 'urlServicio' ('host:puerto', siempre http) al
+  /// nuevo almacenamiento separado (host/puerto/esquema), una sola vez.
+  /// Preserva el comportamiento actual para dispositivos ya configurados:
+  /// el esquema migrado siempre es 'http', nunca se fuerza https.
+  void _migrarUrlServicioLegado() {
+    if ((_prefs.getString('servidorHost') ?? '').isNotEmpty) return;
+    final legado = _prefs.getString('urlServicio') ?? '';
+    if (legado.isEmpty) return;
+
+    final idx = legado.lastIndexOf(':');
+    final host = idx == -1 ? legado : legado.substring(0, idx);
+    final puerto = idx == -1 ? '' : legado.substring(idx + 1);
+
+    _prefs.setString('servidorHost', host);
+    _prefs.setString('servidorPuerto', puerto);
+    _prefs.setString('servidorEsquema', 'http');
   }
 
   // =======================================================
@@ -107,6 +127,42 @@ class PreferenciasUsuario {
 
   set urlServicio(String value) {
     _prefs.setString('urlServicio', value);
+  }
+
+  String get servidorHost {
+    return _prefs.getString('servidorHost') ?? '';
+  }
+
+  set servidorHost(String value) {
+    _prefs.setString('servidorHost', value);
+  }
+
+  String get servidorPuerto {
+    return _prefs.getString('servidorPuerto') ?? '';
+  }
+
+  set servidorPuerto(String value) {
+    _prefs.setString('servidorPuerto', value);
+  }
+
+  String get servidorEsquema {
+    return _prefs.getString('servidorEsquema') ?? 'https';
+  }
+
+  set servidorEsquema(String value) {
+    _prefs.setString('servidorEsquema', value);
+  }
+
+  /// URL base lista para usar ('esquema://host[:puerto]'), o '' si no hay
+  /// servidor configurado. Fuente única de verdad para armar cualquier
+  /// request al backend.
+  String get urlBase {
+    final host = servidorHost;
+    if (host.isEmpty) return '';
+    final puerto = servidorPuerto;
+    return puerto.isEmpty
+        ? '$servidorEsquema://$host'
+        : '$servidorEsquema://$host:$puerto';
   }
 
   String get ruta {
