@@ -65,10 +65,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
         leading: widget.esEdicion
             ? null
             : BackButton(
-                onPressed: () {
-                  // Aquí pones tu ruta específica
-                  AppNavigator.pushNamed(AppRoutes.listadoVentas);
-                },
+                onPressed: () => AppNavigator.pop(),
               ),
         backgroundColor: colorRojoBase(),
         title: Text(
