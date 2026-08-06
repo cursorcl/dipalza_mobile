@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.6.1...v2.7.0) (2026-08-06)
+
+
+### Features
+
+* separa host/puerto/esquema en la config del servidor y soporta HTTPS ([#21](https://github.com/cursorcl/dipalza_mobile/issues/21)) ([b7e4f69](https://github.com/cursorcl/dipalza_mobile/commit/b7e4f69b5c5e9ae2dc33c07fda52d66e072af501))
+
 ## [2.6.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.6.0...v2.6.1) (2026-08-05)
 
 
