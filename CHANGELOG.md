@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.7.0...v2.7.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* el botón atrás del detalle de venta ya no apila una lista duplicada ([#22](https://github.com/cursorcl/dipalza_mobile/issues/22)) ([c1a82fd](https://github.com/cursorcl/dipalza_mobile/commit/c1a82fd1bd33581b58c9047cd81f7fe10c5e4912))
+
 # [2.7.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.6.1...v2.7.0) (2026-08-06)
 
 
