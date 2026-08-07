@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.7.1...v2.8.0) (2026-08-07)
+
+
+### Features
+
+* detecta si hay una nueva versión disponible (Android) ([#23](https://github.com/cursorcl/dipalza_mobile/issues/23)) ([fa56773](https://github.com/cursorcl/dipalza_mobile/commit/fa56773264f03b425ff5ccc466bf5376ddcd5157))
+
 ## [2.7.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.7.0...v2.7.1) (2026-08-06)
 
 
