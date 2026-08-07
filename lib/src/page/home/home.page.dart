@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart' show openAppSettings;
 
 import '../../model/venta_model.dart';
+import '../../services/update_checker_service.dart';
 import '../../share/app_scaffold_key.dart';
 import '../cliente/clientes.page.dart';
 import '../config/preferences.page.dart';
@@ -50,6 +51,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (!mounted) return;
       await solicitarPermisoUbicacionSiempre(context);
       _verificarPermisoUbicacion();
+      if (!mounted) return;
+      verificarNuevaVersionDisponible(context);
     });
     _recordatorioPermisoTimer = Timer.periodic(
       const Duration(minutes: 5),

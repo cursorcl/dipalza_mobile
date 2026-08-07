@@ -15,3 +15,9 @@ echo "Symlink actualizado: $DOWNLOADS_DIR/dipalza-app.apk -> $APK_PATH"
 
 (cd "$DOWNLOADS_DIR" && sha256sum dipalza-app.apk > dipalza-app.apk.sha256)
 echo "Checksum generado: $DOWNLOADS_DIR/dipalza-app.apk.sha256"
+
+VERSION_SIN_V="${VERSION#v}"
+SHA256_HASH=$(cut -d' ' -f1 "$DOWNLOADS_DIR/dipalza-app.apk.sha256")
+printf '{"version": "%s", "sha256": "%s"}\n' "$VERSION_SIN_V" "$SHA256_HASH" \
+  > "$DOWNLOADS_DIR/version.json"
+echo "version.json generado: $DOWNLOADS_DIR/version.json"
