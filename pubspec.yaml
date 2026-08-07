@@ -51,6 +51,7 @@ dependencies:
   permission_handler: ^11.3.0
   flutter_background_service: ^5.0.0
   flutter_local_notifications: ^18.0.1
+  url_launcher: ^6.3.1
   
 
   path: any
