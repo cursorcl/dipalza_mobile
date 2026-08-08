@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.8.0...v2.9.0) (2026-08-08)
+
+
+### Features
+
+* agrega cambio de clave autenticado y recuperación por correo ([#24](https://github.com/cursorcl/dipalza_mobile/issues/24)) ([a6d7f5d](https://github.com/cursorcl/dipalza_mobile/commit/a6d7f5d8eab221cd175aa90e1eba2075a3291786))
+
 # [2.8.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.7.1...v2.8.0) (2026-08-07)
 
 
