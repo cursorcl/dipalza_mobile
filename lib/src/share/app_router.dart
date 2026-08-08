@@ -5,10 +5,12 @@ import '../model/producto_model.dart';
 import '../model/rutas_model.dart';
 import '../model/venta_model.dart';
 import '../page/cliente/clientes.page.dart';
+import '../page/config/cambiar_clave.page.dart';
 import '../page/config/preferences.page.dart';
 import '../page/home/home.page.dart';
 // --- IMPORTS DE TUS PÁGINAS ---
 import '../page/login/login.page.dart'; // O AuthGate si usas ese
+import '../page/login/olvide_clave.page.dart';
 import '../page/producto/productos.page.dart';
 import '../page/rutas/rutas.page.dart';
 import '../page/ventas/listado.de.ventas.page.dart';
@@ -108,7 +110,14 @@ class AppRouter {
         
       case AppRoutes.config:
         return MaterialPageRoute(builder: (_) => const ConfiguracionPage());
-        
+
+      case AppRoutes.cambiarClave:
+        return MaterialPageRoute(builder: (_) => const CambiarClavePage());
+
+      case AppRoutes.olvideClave:
+        return MaterialPageRoute(builder: (_) => const OlvideClavePage());
+
+
     // DEFAULT
       default:
         return _errorRoute("Ruta no definida: ${settings.name}");

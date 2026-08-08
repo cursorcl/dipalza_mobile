@@ -564,6 +564,12 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
           if (_canShowLogout) ...[
             _sectionHeader('Cuenta'),
             ListTile(
+              leading: const Icon(Icons.lock_outline),
+              title: const Text('Cambiar contraseña'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => AppNavigator.pushNamed(AppRoutes.cambiarClave),
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Cerrar sesión'),
               onTap: () async {
