@@ -131,7 +131,16 @@ class _LoginPageState extends State<LoginPage> {
                 absorbing: status != ServerStatus.online,
                 child: _crearPassword(bloc),
               ),
-              const SizedBox(height: 20.0),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () async {
+                    await AppNavigator.pushNamed(AppRoutes.olvideClave);
+                  },
+                  child: const Text('¿Olvidaste tu clave?'),
+                ),
+              ),
+              const SizedBox(height: 10.0),
               AbsorbPointer(
                 absorbing: status != ServerStatus.online,
                 child: _crearSelectorFechaFacturacion(context),
