@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../model/rutas_model.dart';
 import '../../provider/vendedor_ruta_provider.dart';
@@ -43,6 +44,9 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
   ConnectionStatus _status = ConnectionStatus.unknown;
   bool _probando = false;
 
+  String _appVersion = '';
+  String _appBuildNumber = '';
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +55,16 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
     // Estado inicial: si hay URL, no asumimos conectividad hasta probar
     _status = ConnectionStatus.unknown;
     _cargarRutasAsignadas();
+    _cargarVersionApp();
+  }
+
+  Future<void> _cargarVersionApp() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() {
+      _appVersion = packageInfo.version;
+      _appBuildNumber = packageInfo.buildNumber;
+    });
   }
 
   Future<void> _cargarRutasAsignadas() async {
@@ -601,10 +615,12 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
           ],
           // -------- Acerca de --------
           _sectionHeader('Acerca de'),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
-            title: Text('Versión'),
-            subtitle: Text('1.0.0 (build 1)'),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('Versión'),
+            subtitle: Text(_appVersion.isEmpty
+                ? 'Cargando...'
+                : '$_appVersion (build $_appBuildNumber)'),
           ),
           const SizedBox(height: 16),
         ],
