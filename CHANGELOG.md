@@ -1,3 +1,10 @@
+## [2.9.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.0...v2.9.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* la app muestra la versión real de Android en vez de un valor fijo ([#25](https://github.com/cursorcl/dipalza_mobile/issues/25)) ([6fa7e7d](https://github.com/cursorcl/dipalza_mobile/commit/6fa7e7d5fe7ec3fd6e42a7920fb844be0fd526b6))
+
 # [2.9.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.8.0...v2.9.0) (2026-08-08)
 
 
