@@ -356,6 +356,19 @@ class _LoginPageState extends State<LoginPage> {
         prefs.fechaFacturacion = _fechaFacturacion!;
       }
 
+      if (response.mustChangePassword) {
+        if (mounted) {
+          await AppNavigator.pushReplacementNamed(
+            AppRoutes.cambiarClaveObligatorio,
+            arguments: {'claveActual': bloc.password},
+          );
+        }
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+
       try {
         final rutas = await VendedorRutaProvider()
             .obtenerRutasAsignadas(response.codigo, response.tipo);
