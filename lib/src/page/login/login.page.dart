@@ -358,12 +358,10 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.mustChangePassword) {
         if (mounted) {
-          await AppNavigator.pushReplacementNamed(
+          AppNavigator.pushReplacementNamed(
             AppRoutes.cambiarClaveObligatorio,
             arguments: {'claveActual': bloc.password},
           );
-        }
-        if (mounted) {
           setState(() => _isLoading = false);
         }
         return;
