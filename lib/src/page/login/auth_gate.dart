@@ -8,13 +8,18 @@ import '../../share/app_routes.dart';
 import '../../share/prefs_usuario.dart';
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+  /// Permite inyectar un [ApiClient] durante los tests. En la app real se
+  /// usa el singleton por defecto.
+  final ApiClient? apiClient;
+
+  const AuthGate({super.key, this.apiClient});
 
   @override
   State<AuthGate> createState() => _AuthGateState();
 }
 
 class _AuthGateState extends State<AuthGate> {
+  late final ApiClient _apiClient = widget.apiClient ?? ApiClient();
 
   @override
   void initState() {
@@ -45,11 +50,16 @@ class _AuthGateState extends State<AuthGate> {
         bool isExpired = JwtDecoder.isExpired(refreshToken);
 
         if (!isExpired) {
-          final apiClient = ApiClient();
-          final renovado = await apiClient.renovarToken();
-          if (renovado) {
+          final resultado = await _apiClient.renovarToken();
+          if (resultado.exitoso && !resultado.mustChangePassword) {
             isSessionValid = true;
           } else {
+            // La renovación falló, o tuvo éxito pero el usuario todavía
+            // tiene pendiente el cambio de clave obligatorio: no debe
+            // llegar a Home saltándose esa pantalla. Se trata igual que una
+            // sesión inválida (cae al 'else' de más abajo, que borra
+            // credenciales y manda a login; ahí login.page.dart detecta
+            // mustChangePassword y lo lleva a CambiarClaveObligatorioPage).
             isSessionValid = false;
           }
         } else {
