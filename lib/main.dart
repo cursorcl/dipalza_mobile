@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dipalza_movil/src/bloc/cambiar_clave_bloc.dart';
 import 'package:dipalza_movil/src/bloc/login_bloc.dart';
-import 'package:dipalza_movil/src/bloc/reset_clave_bloc.dart';
 import 'package:dipalza_movil/src/page/config/server_setup.page.dart';
 import 'package:dipalza_movil/src/page/login/auth_gate.dart';
 import 'package:dipalza_movil/src/services/api_client.dart';
@@ -189,10 +188,6 @@ void main() async {
         ),
         Provider<CambiarClaveBloc>(
           create: (_) => CambiarClaveBloc(),
-          dispose: (_, bloc) => bloc.dispose(),
-        ),
-        Provider<ResetClaveBloc>(
-          create: (_) => ResetClaveBloc(),
           dispose: (_, bloc) => bloc.dispose(),
         ),
       ],
