@@ -19,6 +19,8 @@ class AppRoutes {
       'ventaItemEdicion'; // VentaEdicionItemDetalle(actualVenta, actualVentaDetalle)
   static const String login = 'login'; // LoginPage
   static const String cambiarClave = 'cambiarClave'; // CambiarClavePage
+  static const String cambiarClaveObligatorio =
+      'cambiarClaveObligatorio'; // CambiarClaveObligatorioPage
   static const String olvideClave = 'olvideClave'; // OlvideClavePage
   static const String home = 'home'; // ListadeDeVentasPage
   static const String listadoUltimaVenta =
