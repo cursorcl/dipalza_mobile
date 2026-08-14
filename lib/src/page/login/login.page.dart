@@ -174,6 +174,8 @@ class _LoginPageState extends State<LoginPage> {
           controller: _textUsuarioController,
           keyboardType: TextInputType.text,
           enabled: !_isLoading,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.person_outline, color: colorRojoBase()),
             labelText: 'Vendedor',
