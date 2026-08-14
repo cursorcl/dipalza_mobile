@@ -5,6 +5,21 @@ import 'package:flutter/material.dart';
 
 import '../share/prefs_usuario.dart';
 
+/// Resultado de [ApiClient.renovarToken]. Además de si la renovación fue
+/// exitosa, expone `mustChangePassword` (tal como lo hace `LoginResponseModel`
+/// para la respuesta de `/auth/login`) para que quien orquesta el arranque de
+/// la app (`AuthGate`) pueda decidir si una sesión renovada silenciosamente
+/// sigue requiriendo el cambio de clave obligatorio.
+class RenovarTokenResultado {
+  final bool exitoso;
+  final bool mustChangePassword;
+
+  const RenovarTokenResultado({
+    required this.exitoso,
+    this.mustChangePassword = false,
+  });
+}
+
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
   late Dio dio;
@@ -86,7 +101,8 @@ class ApiClient {
 
     _isRefreshing = true;
     try {
-      final result = await renovarToken();
+      final resultado = await renovarToken();
+      final result = resultado.exitoso;
       if (result) {
         _sessionNotified = false;
       }
@@ -110,10 +126,12 @@ class ApiClient {
     }
   }
 
-  Future<bool> renovarToken() async {
+  Future<RenovarTokenResultado> renovarToken() async {
     try {
       final refreshToken = pref.refreshToken;
-      if (refreshToken.isEmpty) return false;
+      if (refreshToken.isEmpty) {
+        return const RenovarTokenResultado(exitoso: false);
+      }
 
       final resp = await dioRefresh
           .post(
@@ -126,18 +144,22 @@ class ApiClient {
       if (resp.statusCode == 200) {
         final nuevoAccessToken = resp.data['accessToken'];
         final nuevoRefreshToken = resp.data['refreshToken'];
+        final mustChangePassword = resp.data['mustChangePassword'] ?? false;
 
         pref.access_token = nuevoAccessToken;
         if (nuevoRefreshToken != null) {
           pref.refreshToken = nuevoRefreshToken;
         }
 
-        return true;
+        return RenovarTokenResultado(
+          exitoso: true,
+          mustChangePassword: mustChangePassword,
+        );
       }
-      return false;
+      return const RenovarTokenResultado(exitoso: false);
     } catch (e) {
       debugPrint("Error en renovación automática: $e");
-      return false;
+      return const RenovarTokenResultado(exitoso: false);
     }
   }
 

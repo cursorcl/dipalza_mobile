@@ -325,7 +325,8 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
               bottom: viewInsets.bottom + 16,
               top: 8,
             ),
-            child: Form(
+            child: SingleChildScrollView(
+              child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -340,6 +341,8 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                     isHttps: sheetIsHttps,
                     onEsquemaChanged: (value) =>
                         setModalState(() => sheetIsHttps = value),
+                    statusIcon: _statusIcon(),
+                    statusColor: _statusColor(ctx),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -353,16 +356,22 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                                       false)) {
                                     return;
                                   }
-                                  setState(() => _probando = true);
+                                  // setModalState refresca este sheet (spinner,
+                                  // ícono de estado del campo Servidor);
+                                  // setState mantiene sincronizada la ficha de
+                                  // la pantalla de Configuración detrás de él.
+                                  setModalState(() => _probando = true);
+                                  setState(() {});
                                   final ok =
                                       await _pingServer(candidatoUrlBase());
                                   if (!mounted) return;
-                                  setState(() {
+                                  setModalState(() {
                                     _probando = false;
                                     _status = ok
                                         ? ConnectionStatus.ok
                                         : ConnectionStatus.invalid;
                                   });
+                                  setState(() {});
                                   if (!ctx.mounted) return;
                                   ScaffoldMessenger.of(ctx).showSnackBar(
                                       SnackBar(
@@ -439,6 +448,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                   }),
                 ],
               ),
+            ),
             ),
           );
         });

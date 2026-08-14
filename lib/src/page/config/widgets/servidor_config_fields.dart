@@ -11,6 +11,13 @@ class ServidorConfigFields extends StatelessWidget {
   final TextEditingController puertoController;
   final bool isHttps;
   final ValueChanged<bool> onEsquemaChanged;
+  // Opcionales: cuando el caller ya conoce el estado de la conexión (p.ej. la
+  // pantalla de Configuración, tras "Probar conexión"), se refleja en el
+  // ícono del campo Servidor -- mismo ícono/color que se ve en esa pantalla.
+  // Si se omiten, el campo muestra el ícono neutro de siempre (p.ej. en la
+  // configuración inicial, donde aún no hay una conexión que mostrar).
+  final IconData? statusIcon;
+  final Color? statusColor;
 
   const ServidorConfigFields({
     super.key,
@@ -18,6 +25,8 @@ class ServidorConfigFields extends StatelessWidget {
     required this.puertoController,
     required this.isHttps,
     required this.onEsquemaChanged,
+    this.statusIcon,
+    this.statusColor,
   });
 
   static String? validarHost(String? value) {
@@ -45,10 +54,12 @@ class ServidorConfigFields extends StatelessWidget {
           controller: hostController,
           keyboardType: TextInputType.url,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: InputDecoration(
             labelText: 'Servidor',
             hintText: 'ventas.dynalias.net',
-            prefixIcon: Icon(Icons.dns),
+            prefixIcon: Icon(statusIcon ?? Icons.dns, color: statusColor),
           ),
           validator: validarHost,
         ),

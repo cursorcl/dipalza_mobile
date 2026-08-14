@@ -15,6 +15,7 @@ class LoginResponseModel {
   final String tipo;
   final String rut;
   final String nombre;
+  final bool mustChangePassword;
 
   LoginResponseModel({
     required this.accessToken,
@@ -24,6 +25,7 @@ class LoginResponseModel {
     required this.tipo,
     required this.rut,
     required this.nombre,
+    this.mustChangePassword = false,
   });
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class LoginResponseModel {
       tipo: vendedor["tipo"],
       rut: vendedor["rut"],
       nombre: vendedor["nombre"],
+      mustChangePassword: json["mustChangePassword"] ?? false,
     );
   }
 
@@ -49,5 +52,6 @@ class LoginResponseModel {
           "rut": rut,
           "nombre": nombre,
         },
+        "mustChangePassword": mustChangePassword,
       };
 }

@@ -11,6 +11,7 @@ import '../page/home/home.page.dart';
 // --- IMPORTS DE TUS PÁGINAS ---
 import '../page/login/login.page.dart'; // O AuthGate si usas ese
 import '../page/login/olvide_clave.page.dart';
+import '../page/login/cambiar_clave_obligatorio.page.dart';
 import '../page/producto/productos.page.dart';
 import '../page/rutas/rutas.page.dart';
 import '../page/ventas/listado.de.ventas.page.dart';
@@ -117,6 +118,12 @@ class AppRouter {
       case AppRoutes.olvideClave:
         return MaterialPageRoute(builder: (_) => const OlvideClavePage());
 
+      case AppRoutes.cambiarClaveObligatorio:
+        if (args is Map<String, dynamic> && args['claveActual'] is String) {
+          return MaterialPageRoute(
+              builder: (_) => CambiarClaveObligatorioPage(claveActual: args['claveActual']));
+        }
+        return _errorRoute("Faltan argumentos en Cambiar Clave Obligatorio");
 
     // DEFAULT
       default:

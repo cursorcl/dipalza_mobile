@@ -174,6 +174,8 @@ class _LoginPageState extends State<LoginPage> {
           controller: _textUsuarioController,
           keyboardType: TextInputType.text,
           enabled: !_isLoading,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: InputDecoration(
             prefixIcon: Icon(Icons.person_outline, color: colorRojoBase()),
             labelText: 'Vendedor',
@@ -354,6 +356,17 @@ class _LoginPageState extends State<LoginPage> {
       // Se guarda como String en formato ISO 8601 (estándar y robusto)
       if (_fechaFacturacion != null) {
         prefs.fechaFacturacion = _fechaFacturacion!;
+      }
+
+      if (response.mustChangePassword) {
+        if (mounted) {
+          AppNavigator.pushReplacementNamed(
+            AppRoutes.cambiarClaveObligatorio,
+            arguments: {'claveActual': bloc.password},
+          );
+          setState(() => _isLoading = false);
+        }
+        return;
       }
 
       try {
