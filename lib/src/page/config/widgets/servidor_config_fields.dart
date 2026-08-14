@@ -45,6 +45,8 @@ class ServidorConfigFields extends StatelessWidget {
           controller: hostController,
           keyboardType: TextInputType.url,
           textInputAction: TextInputAction.next,
+          autocorrect: false,
+          enableSuggestions: false,
           decoration: const InputDecoration(
             labelText: 'Servidor',
             hintText: 'ventas.dynalias.net',

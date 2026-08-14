@@ -59,11 +59,16 @@ class VenderdorProvider {
           );
         default:
           final data = e.response?.data;
+          // Spring devuelve "error" (frase genérica del código HTTP, p.ej.
+          // "Unprocessable Entity") y "message" (el motivo real, cuando
+          // server.error.include-message está habilitado) como campos
+          // separados -- se prioriza "message" para mostrar algo útil.
+          final mensaje = data is Map<String, dynamic>
+              ? (data['message'] ?? data['error'])?.toString() ?? "Error desconocido"
+              : data?.toString() ?? "Error desconocido";
           return RespuestaModel(
             status: e.response!.statusCode ?? 500,
-            detalle: data is Map<String, dynamic>
-                ? data
-                : {"error": data?.toString() ?? "Error desconocido"},
+            detalle: {"error": mensaje},
           );
       }
     } catch (error) {

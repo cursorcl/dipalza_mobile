@@ -325,7 +325,8 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
               bottom: viewInsets.bottom + 16,
               top: 8,
             ),
-            child: Form(
+            child: SingleChildScrollView(
+              child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -439,6 +440,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                   }),
                 ],
               ),
+            ),
             ),
           );
         });
