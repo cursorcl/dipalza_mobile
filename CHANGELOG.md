@@ -1,3 +1,10 @@
+## [2.9.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.1...v2.9.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* dispara el release pendiente (gestión de usuarios / cambio de clave) ([#27](https://github.com/cursorcl/dipalza_mobile/issues/27)) ([f9c978a](https://github.com/cursorcl/dipalza_mobile/commit/f9c978acf400b6f815b55ff29460333843fa054f))
+
 ## [2.9.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.0...v2.9.1) (2026-08-11)
 
 
