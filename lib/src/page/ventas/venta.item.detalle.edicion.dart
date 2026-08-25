@@ -479,6 +479,13 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
     final precio2 = _precioLista2 > 0 ? _precioLista2 : 0.0;
     final bool precio2Habilitado = precio2 > 0;
 
+    // Sin lista Secundaria activa no hay nada entre qué elegir: se oculta el
+    // selector completo y se deja solo el precio único (ya visible en el
+    // resumen más abajo, formatCurrency(_precioUnitario)).
+    if (!precio2Habilitado) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Column(
