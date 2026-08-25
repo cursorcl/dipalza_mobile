@@ -1,3 +1,10 @@
+## [2.9.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.2...v2.9.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* oculta el selector de precio cuando no hay lista Secundaria activa ([#28](https://github.com/cursorcl/dipalza_mobile/issues/28)) ([8c67df2](https://github.com/cursorcl/dipalza_mobile/commit/8c67df22355df9db9fbe92b1ac5eaa427ffd8c52))
+
 ## [2.9.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.1...v2.9.2) (2026-08-14)
 
 
