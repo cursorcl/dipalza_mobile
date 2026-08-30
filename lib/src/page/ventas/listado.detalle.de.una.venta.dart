@@ -1,7 +1,5 @@
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/page/ventas/venta.item.detelle.view.dart';
-import 'package:dipalza_movil/src/provider/conduccion_provider.dart';
-import 'package:dipalza_movil/src/provider/rutas_provider.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
@@ -37,24 +35,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
   void initState() {
     super.initState();
     _venta = widget.ventaModel;
-    _cargarConfiguracionRuta();
     _cargarDetalles();
-  }
-
-  Future<void> _cargarConfiguracionRuta() async {
-    try {
-      var rutas = await RutasProvider.rutasProvider.obtenerListaRutas();
-
-      if (!mounted) return;
-
-      if (rutas.isNotEmpty) {
-        var ruta = rutas.firstWhere((r) => r.codigo == _venta.codigoRuta,
-            orElse: () => rutas.first);
-        createConduccion(ruta.codigoConduccion);
-      }
-    } catch (e) {
-      print("Error cargando rutas: $e");
-    }
   }
 
   @override
@@ -281,30 +262,6 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
         });
       }
     });
-  }
-
-  Future<VentaDetalleModel> createConduccion(String codigoConduccion) async {
-    var conducciones =
-        await ConduccionProvider.conduccionProvider.obtenerListaConduccion();
-    var conduccion = conducciones.firstWhere(
-        (conduccion) => conduccion.codigo == codigoConduccion,
-        orElse: () => conducciones.first);
-
-    return VentaDetalleModel(
-        ventaId: _venta.id,
-        idProducto: conduccion.codigo,
-        nombreProducto: conduccion.descripcion,
-        cantidad: 1,
-        precioUnitario: conduccion.valor,
-        porcentajeDescuento: 0,
-        porcentajeIva: 0,
-        porcentajeIla: 0,
-        totalLinea: conduccion.valor,
-        totalDescuento: 0,
-        totalIva: 0,
-        totalIla: 0,
-        piezas: 0,
-        unidad: 'UND');
   }
 
   Future<void> _finalizarVenta() async {
