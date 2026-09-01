@@ -108,7 +108,9 @@ class _ClientesPageState extends State<ClientesPage> {
   List<ClientesModel> _filtrarLista(List<ClientesModel> listaCompleta) {
     if (controller.text.isEmpty) return listaCompleta;
     return listaCompleta
-        .where((cliente) => cliente.razon.contains(controller.text))
+        .where((cliente) => cliente.razon
+            .toUpperCase()
+            .contains(controller.text.toUpperCase()))
         .toList();
   }
 
