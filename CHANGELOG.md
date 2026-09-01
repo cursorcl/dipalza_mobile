@@ -1,3 +1,10 @@
+## [2.9.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.3...v2.9.4) (2026-09-01)
+
+
+### Bug Fixes
+
+* búsqueda insensible a mayúsculas/minúsculas ([#30](https://github.com/cursorcl/dipalza_mobile/issues/30)) ([5807cf3](https://github.com/cursorcl/dipalza_mobile/commit/5807cf31cfe65cb35f966d75f57ba6dd5559dbb6))
+
 ## [2.9.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.2...v2.9.3) (2026-08-25)
 
 
