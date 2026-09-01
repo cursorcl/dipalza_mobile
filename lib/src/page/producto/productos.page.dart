@@ -124,7 +124,8 @@ class _ProductosPageState extends State<ProductosPage> {
         if (producto.descripcion
                 .toUpperCase()
                 .contains(controller.text.toUpperCase()) ||
-            producto.articulo == controller.text) {
+            producto.articulo.toUpperCase() ==
+                controller.text.toUpperCase()) {
           _searchResult.add(producto);
         }
       });
