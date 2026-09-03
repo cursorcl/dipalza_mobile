@@ -164,11 +164,11 @@ void main() {
     await initializeDateFormatting('es_CL', null);
 
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    // En debug los errores se ven en consola igual; en release además se
-    // reportan a Crashlytics. No desactivamos la captura en debug porque
-    // el equipo también usa builds de release para probar en terreno.
-    await FirebaseCrashlytics.instance
-        .setCrashlyticsCollectionEnabled(!kDebugMode);
+    // Habilitado también en debug (por ahora) para poder probar el flujo
+    // completo de Crashlytics desde el simulador/emulador sin tener que
+    // compilar en release. Si más adelante el dashboard se llena de ruido
+    // por corridas de desarrollo, volver a condicionar con `!kDebugMode`.
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     configurarCapturaDeErrores();
 
     final prefs = new PreferenciasUsuario();
