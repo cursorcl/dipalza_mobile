@@ -34,11 +34,8 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text('Console LOG'),
           actions: <Widget>[
@@ -57,12 +54,6 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
               tooltip: 'Enviar logs',
               onPressed: _enviandoLogs ? null : _enviarLogs,
             ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              color: Colors.red[300],
-              onPressed: () =>
-                  Navigator.of(context).pushReplacementNamed('login'),
-            ),
           ],
         ),
         body: Container(
@@ -76,7 +67,6 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
             padding: const EdgeInsets.all(.0),
           ),
         ),
-      ),
     );
   }
 

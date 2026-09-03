@@ -632,6 +632,13 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
                 ? 'Cargando...'
                 : '$_appVersion (build $_appBuildNumber)'),
           ),
+          ListTile(
+            leading: const Icon(Icons.bug_report_outlined),
+            title: const Text('Registro de la aplicación'),
+            subtitle: const Text('Ver o enviar los logs de la app'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => AppNavigator.pushNamed(AppRoutes.consoleLog),
+          ),
           const SizedBox(height: 16),
         ],
       ),

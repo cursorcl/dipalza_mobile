@@ -12,6 +12,7 @@ import '../page/home/home.page.dart';
 import '../page/login/login.page.dart'; // O AuthGate si usas ese
 import '../page/login/olvide_clave.page.dart';
 import '../page/login/cambiar_clave_obligatorio.page.dart';
+import '../log/console_log.page.dart';
 import '../page/producto/productos.page.dart';
 import '../page/rutas/rutas.page.dart';
 import '../page/ventas/listado.de.ventas.page.dart';
@@ -124,6 +125,9 @@ class AppRouter {
               builder: (_) => CambiarClaveObligatorioPage(claveActual: args['claveActual']));
         }
         return _errorRoute("Faltan argumentos en Cambiar Clave Obligatorio");
+
+      case AppRoutes.consoleLog:
+        return MaterialPageRoute(builder: (_) => ConsoleLogPage());
 
     // DEFAULT
       default:
