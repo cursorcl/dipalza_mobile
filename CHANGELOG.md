@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.4...v2.10.0) (2026-09-03)
+
+
+### Features
+
+* captura de caídas con Firebase Crashlytics y envío de logs ([#31](https://github.com/cursorcl/dipalza_mobile/issues/31)) ([e801c8a](https://github.com/cursorcl/dipalza_mobile/commit/e801c8aee21adb3d5e9b34f632f725ec4055b6a0))
+
 ## [2.9.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.3...v2.9.4) (2026-09-01)
 
 
