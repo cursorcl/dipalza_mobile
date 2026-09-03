@@ -1,5 +1,14 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../share/prefs_usuario.dart';
+import '../utils/utils.dart';
 import 'db_log_provider.dart';
 import 'log_model.dart';
 
@@ -9,9 +18,15 @@ class ConsoleLogPage extends StatefulWidget {
 }
 
 class _ConsoleLogPageState extends State<ConsoleLogPage> {
+  /// Oculto por ahora -- ya se verificó que la captura y subida a
+  /// Crashlytics funcionan de punta a punta. Volver a poner en `true`
+  /// (junto con kDebugMode) si hace falta probar de nuevo.
+  static const bool _mostrarBotonCrashDePrueba = false;
+
   late LogModel ultimoLog;
   final List<Container> _logs = <Container>[];
   final ScrollController _scrollController = new ScrollController();
+  bool _enviandoLogs = false;
 
   @override
   void initState() {
@@ -27,24 +42,37 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          backgroundColor: colorRojoBase(),
+          foregroundColor: Colors.white,
           centerTitle: true,
           title: const Text('Console LOG'),
           actions: <Widget>[
+            if (_mostrarBotonCrashDePrueba && kDebugMode)
+              IconButton(
+                icon: const Icon(Icons.bug_report),
+                tooltip: 'Forzar crash de prueba',
+                onPressed: _forzarCrashDePrueba,
+              ),
             IconButton(
-              icon: const Icon(Icons.close),
-              color: Colors.red[300],
-              onPressed: () =>
-                  Navigator.of(context).pushReplacementNamed('login'),
+              icon: _enviandoLogs
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.share),
+              tooltip: 'Enviar logs',
+              onPressed: _enviandoLogs ? null : _enviarLogs,
             ),
           ],
         ),
         body: Container(
-          color: Colors.black,
+          color: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
           child: ListView.builder(
             controller: _scrollController,
@@ -54,8 +82,52 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
             padding: const EdgeInsets.all(.0),
           ),
         ),
-      ),
     );
+  }
+
+  /// Solo visible en debug: fuerza un crash real (a través de Crashlytics)
+  /// para verificar que la captura de errores y la subida a Firebase
+  /// funcionan de punta a punta, sin depender de un crash real en terreno.
+  void _forzarCrashDePrueba() {
+    FirebaseCrashlytics.instance.crash();
+  }
+
+  /// Exporta todos los logs guardados localmente a un archivo de texto y
+  /// abre el selector nativo para compartirlo (WhatsApp, correo, etc.) --
+  /// pensado para que un vendedor en terreno pueda mandar sus logs cuando
+  /// la app se cayó o se comportó de forma extraña.
+  Future<void> _enviarLogs() async {
+    setState(() => _enviandoLogs = true);
+    try {
+      final logs = await DBLogProvider.db.getTodos();
+      final paqueteInfo = await PackageInfo.fromPlatform();
+      final vendedor = PreferenciasUsuario().vendedor;
+
+      final buffer = StringBuffer()
+        ..writeln('Logs Dipalza Móvil')
+        ..writeln('Versión: ${paqueteInfo.version}+${paqueteInfo.buildNumber}')
+        ..writeln('Vendedor: ${vendedor.isEmpty ? '(sin sesión)' : vendedor}')
+        ..writeln('Generado: ${DateTime.now()}')
+        ..writeln('Cantidad de registros: ${logs.length}')
+        ..writeln('---');
+      for (final item in logs) {
+        buffer.writeln(item.log);
+      }
+
+      final directorioTemporal = await getTemporaryDirectory();
+      final marcaTiempo = DateTime.now().millisecondsSinceEpoch;
+      final archivo = File('${directorioTemporal.path}/dipalza_logs_$marcaTiempo.txt');
+      await archivo.writeAsString(buffer.toString());
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(archivo.path)],
+          subject: 'Logs Dipalza Móvil - $vendedor',
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _enviandoLogs = false);
+    }
   }
 
   void _loadLogs() async {
@@ -90,7 +162,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
         child: Text(
           item.log,
           maxLines: 1000,
-          style: const TextStyle(color: Colors.white, fontSize: 11.0),
+          style: const TextStyle(color: Colors.black87, fontSize: 11.0),
         ),
       );
       _logs.insert(0, texto);
@@ -104,7 +176,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
         child: Text(
           item.log,
           maxLines: 1000,
-          style: const TextStyle(color: Colors.white, fontSize: 11.0),
+          style: const TextStyle(color: Colors.black87, fontSize: 11.0),
         ),
       );
       _logs.insert(_logs.length, texto);

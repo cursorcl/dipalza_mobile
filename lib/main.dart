@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dipalza_movil/src/bloc/cambiar_clave_bloc.dart';
 import 'package:dipalza_movil/src/bloc/login_bloc.dart';
+import 'package:dipalza_movil/src/log/crash_reporting.dart';
 import 'package:dipalza_movil/src/page/config/server_setup.page.dart';
 import 'package:dipalza_movil/src/page/login/auth_gate.dart';
 import 'package:dipalza_movil/src/services/api_client.dart';
@@ -14,6 +15,8 @@ import 'package:dipalza_movil/src/share/app_router.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:dipalza_movil/src/theme/app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -24,6 +27,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
 import 'src/bloc/condicion_venta_bloc.dart';
 
 // 1. Función global para el servicio
@@ -154,46 +158,52 @@ Future<void> initializeService() async {
     ),
   );
 }
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('es_CL', null);
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('es_CL', null);
 
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    // Habilitado también en debug (por ahora) para poder probar el flujo
+    // completo de Crashlytics desde el simulador/emulador sin tener que
+    // compilar en release. Si más adelante el dashboard se llena de ruido
+    // por corridas de desarrollo, volver a condicionar con `!kDebugMode`.
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    configurarCapturaDeErrores();
 
-  WidgetsFlutterBinding.ensureInitialized();
+    final prefs = new PreferenciasUsuario();
+    await prefs.initPrefs();
 
+    // ✅ Solicitar permiso de notificación (requerido por el foreground
+    // service en Android 13+). El permiso de ubicación se pide más adelante,
+    // en Home, con una explicación previa (ver location_permission_service.dart).
+    await Permission.notification.request();
 
-  final prefs = new PreferenciasUsuario();
-  await prefs.initPrefs();
-
-  // ✅ Solicitar permiso de notificación (requerido por el foreground
-  // service en Android 13+). El permiso de ubicación se pide más adelante,
-  // en Home, con una explicación previa (ver location_permission_service.dart).
-  await Permission.notification.request();
-
-  setupLocator();
-  await initializeService();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => ConnectivityService()..initialize(),
-        ),
-        Provider<CondicionVentaBloc>(
-          create: (_) => locator<CondicionVentaBloc>(),
-          dispose: (_, bloc) => bloc.dispose(),
-        ),
-        Provider<LoginBloc>(
-          create: (_) => LoginBloc(),
-          dispose: (_, bloc) => bloc.dispose(),
-        ),
-        Provider<CambiarClaveBloc>(
-          create: (_) => CambiarClaveBloc(),
-          dispose: (_, bloc) => bloc.dispose(),
-        ),
-      ],
-      child: MyApp(), // Tu widget principal
-    ),
-  );
+    setupLocator();
+    await initializeService();
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => ConnectivityService()..initialize(),
+          ),
+          Provider<CondicionVentaBloc>(
+            create: (_) => locator<CondicionVentaBloc>(),
+            dispose: (_, bloc) => bloc.dispose(),
+          ),
+          Provider<LoginBloc>(
+            create: (_) => LoginBloc(),
+            dispose: (_, bloc) => bloc.dispose(),
+          ),
+          Provider<CambiarClaveBloc>(
+            create: (_) => CambiarClaveBloc(),
+            dispose: (_, bloc) => bloc.dispose(),
+          ),
+        ],
+        child: MyApp(), // Tu widget principal
+      ),
+    );
+  }, capturarErrorDeZona);
 }
 
 class MyApp extends StatefulWidget {

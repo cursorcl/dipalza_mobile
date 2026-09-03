@@ -25,4 +25,5 @@ class AppRoutes {
   static const String home = 'home'; // ListadeDeVentasPage
   static const String listadoUltimaVenta =
       'listadoUltimaVenta'; // ListadoDetalleDeUltimaVentaPage'
+  static const String consoleLog = 'consoleLog'; // ConsoleLogPage
 }
