@@ -18,6 +18,11 @@ class ConsoleLogPage extends StatefulWidget {
 }
 
 class _ConsoleLogPageState extends State<ConsoleLogPage> {
+  /// Oculto por ahora -- ya se verificó que la captura y subida a
+  /// Crashlytics funcionan de punta a punta. Volver a poner en `true`
+  /// (junto con kDebugMode) si hace falta probar de nuevo.
+  static const bool _mostrarBotonCrashDePrueba = false;
+
   late LogModel ultimoLog;
   final List<Container> _logs = <Container>[];
   final ScrollController _scrollController = new ScrollController();
@@ -44,7 +49,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
           centerTitle: true,
           title: const Text('Console LOG'),
           actions: <Widget>[
-            if (kDebugMode)
+            if (_mostrarBotonCrashDePrueba && kDebugMode)
               IconButton(
                 icon: const Icon(Icons.bug_report),
                 tooltip: 'Forzar crash de prueba',
