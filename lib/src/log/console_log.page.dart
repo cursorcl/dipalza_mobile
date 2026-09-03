@@ -1,5 +1,11 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../share/prefs_usuario.dart';
 import 'db_log_provider.dart';
 import 'log_model.dart';
 
@@ -12,6 +18,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
   late LogModel ultimoLog;
   final List<Container> _logs = <Container>[];
   final ScrollController _scrollController = new ScrollController();
+  bool _enviandoLogs = false;
 
   @override
   void initState() {
@@ -36,6 +43,21 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
           title: const Text('Console LOG'),
           actions: <Widget>[
             IconButton(
+              icon: _enviandoLogs
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.share),
+              color: Colors.white,
+              tooltip: 'Enviar logs',
+              onPressed: _enviandoLogs ? null : _enviarLogs,
+            ),
+            IconButton(
               icon: const Icon(Icons.close),
               color: Colors.red[300],
               onPressed: () =>
@@ -56,6 +78,44 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
         ),
       ),
     );
+  }
+
+  /// Exporta todos los logs guardados localmente a un archivo de texto y
+  /// abre el selector nativo para compartirlo (WhatsApp, correo, etc.) --
+  /// pensado para que un vendedor en terreno pueda mandar sus logs cuando
+  /// la app se cayó o se comportó de forma extraña.
+  Future<void> _enviarLogs() async {
+    setState(() => _enviandoLogs = true);
+    try {
+      final logs = await DBLogProvider.db.getTodos();
+      final paqueteInfo = await PackageInfo.fromPlatform();
+      final vendedor = PreferenciasUsuario().vendedor;
+
+      final buffer = StringBuffer()
+        ..writeln('Logs Dipalza Móvil')
+        ..writeln('Versión: ${paqueteInfo.version}+${paqueteInfo.buildNumber}')
+        ..writeln('Vendedor: ${vendedor.isEmpty ? '(sin sesión)' : vendedor}')
+        ..writeln('Generado: ${DateTime.now()}')
+        ..writeln('Cantidad de registros: ${logs.length}')
+        ..writeln('---');
+      for (final item in logs) {
+        buffer.writeln(item.log);
+      }
+
+      final directorioTemporal = await getTemporaryDirectory();
+      final marcaTiempo = DateTime.now().millisecondsSinceEpoch;
+      final archivo = File('${directorioTemporal.path}/dipalza_logs_$marcaTiempo.txt');
+      await archivo.writeAsString(buffer.toString());
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(archivo.path)],
+          subject: 'Logs Dipalza Móvil - $vendedor',
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _enviandoLogs = false);
+    }
   }
 
   void _loadLogs() async {
