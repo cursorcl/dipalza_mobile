@@ -1,11 +1,14 @@
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../share/prefs_usuario.dart';
+import '../utils/utils.dart';
 import 'db_log_provider.dart';
 import 'log_model.dart';
 
@@ -36,9 +39,17 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: colorRojoBase(),
+          foregroundColor: Colors.white,
           centerTitle: true,
           title: const Text('Console LOG'),
           actions: <Widget>[
+            if (kDebugMode)
+              IconButton(
+                icon: const Icon(Icons.bug_report),
+                tooltip: 'Forzar crash de prueba',
+                onPressed: _forzarCrashDePrueba,
+              ),
             IconButton(
               icon: _enviandoLogs
                   ? const SizedBox(
@@ -50,14 +61,13 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
                       ),
                     )
                   : const Icon(Icons.share),
-              color: Colors.white,
               tooltip: 'Enviar logs',
               onPressed: _enviandoLogs ? null : _enviarLogs,
             ),
           ],
         ),
         body: Container(
-          color: Colors.black,
+          color: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
           child: ListView.builder(
             controller: _scrollController,
@@ -68,6 +78,13 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
           ),
         ),
     );
+  }
+
+  /// Solo visible en debug: fuerza un crash real (a través de Crashlytics)
+  /// para verificar que la captura de errores y la subida a Firebase
+  /// funcionan de punta a punta, sin depender de un crash real en terreno.
+  void _forzarCrashDePrueba() {
+    FirebaseCrashlytics.instance.crash();
   }
 
   /// Exporta todos los logs guardados localmente a un archivo de texto y
@@ -140,7 +157,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
         child: Text(
           item.log,
           maxLines: 1000,
-          style: const TextStyle(color: Colors.white, fontSize: 11.0),
+          style: const TextStyle(color: Colors.black87, fontSize: 11.0),
         ),
       );
       _logs.insert(0, texto);
@@ -154,7 +171,7 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
         child: Text(
           item.log,
           maxLines: 1000,
-          style: const TextStyle(color: Colors.white, fontSize: 11.0),
+          style: const TextStyle(color: Colors.black87, fontSize: 11.0),
         ),
       );
       _logs.insert(_logs.length, texto);
