@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.10.0...v2.11.0) (2026-09-09)
+
+
+### Features
+
+* teclado numérico por defecto y navegación entre campos en detalle de venta ([#32](https://github.com/cursorcl/dipalza_mobile/issues/32)) ([a7ba7cc](https://github.com/cursorcl/dipalza_mobile/commit/a7ba7cced96f44fd8bb2a66d00790be53bdc332d))
+
 # [2.10.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.9.4...v2.10.0) (2026-09-03)
 
 
