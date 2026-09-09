@@ -180,6 +180,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             child: TextButton.icon(
+              focusNode: _guardarFocusNode,
               onPressed: enabled ? _guardar : null,
               icon: const Icon(Icons.check_circle_outline, size: 20),
               label: const Text('Guardar'),
@@ -238,6 +239,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                   return TextField(
                     controller: _productoController,
                     focusNode: _productoFocusNode,
+                    keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       hintText: 'Buscar por Código o Nombre',
                       isDense: true,
@@ -325,6 +327,12 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                   borderSide: BorderSide(color: _excedeStock ? Colors.red : Colors.redAccent),
                   borderRadius: BorderRadius.circular(10),
                 ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.arrow_forward),
+                  tooltip: 'Siguiente',
+                  onPressed: () =>
+                      FocusScope.of(context).requestFocus(_descuentoFocusNode),
+                ),
               ),
               onChanged: (_) {
                 // Mantener tu lógica existente
@@ -355,7 +363,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
               controller: _descuentoController,
               focusNode: _descuentoFocusNode,
               keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
+              textInputAction: TextInputAction.next,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
@@ -370,9 +378,16 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                   borderSide: const BorderSide(color: Colors.redAccent),
                   borderRadius: BorderRadius.circular(10),
                 ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.check_circle_outline),
+                  tooltip: 'Siguiente',
+                  onPressed: () =>
+                      FocusScope.of(context).requestFocus(_guardarFocusNode),
+                ),
               ),
               onChanged: (_) => _recalcularTotal(),
-              onSubmitted: (_) => _descuentoFocusNode.unfocus(),
+              onSubmitted: (_) =>
+                  FocusScope.of(context).requestFocus(_guardarFocusNode),
             ),
 
             const SizedBox(height: 14),
