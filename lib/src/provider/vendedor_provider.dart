@@ -45,7 +45,7 @@ class VenderdorProvider {
         case 401:
           return RespuestaModel(
             status: 401,
-            detalle: {"error":"Las credenciales son incorrectas."}
+            detalle: {"error":"Usuario o clave incorrectos."}
           );
         case 409:
           return RespuestaModel(
@@ -63,9 +63,15 @@ class VenderdorProvider {
           // "Unprocessable Entity") y "message" (el motivo real, cuando
           // server.error.include-message está habilitado) como campos
           // separados -- se prioriza "message" para mostrar algo útil.
-          final mensaje = data is Map<String, dynamic>
-              ? (data['message'] ?? data['error'])?.toString() ?? "Error desconocido"
-              : data?.toString() ?? "Error desconocido";
+          // ?? solo reemplaza null, no strings vacíos, así que se valida
+          // isNotEmpty explícitamente (un backend puede responder con un
+          // campo presente pero vacío).
+          final mensajeCrudo = data is Map<String, dynamic>
+              ? (data['message'] ?? data['error'])?.toString()
+              : data?.toString();
+          final mensaje = (mensajeCrudo != null && mensajeCrudo.isNotEmpty)
+              ? mensajeCrudo
+              : "Error desconocido";
           return RespuestaModel(
             status: e.response!.statusCode ?? 500,
             detalle: {"error": mensaje},
