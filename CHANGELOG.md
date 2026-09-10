@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.0...v2.11.1) (2026-09-10)
+
+
+### Bug Fixes
+
+* evita diálogo de login vacío cuando el backend responde sin mensaje ([#33](https://github.com/cursorcl/dipalza_mobile/issues/33)) ([3a29d6d](https://github.com/cursorcl/dipalza_mobile/commit/3a29d6d93f0e0191683b882a54eb43b264553031))
+
 # [2.11.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.10.0...v2.11.0) (2026-09-09)
 
 
