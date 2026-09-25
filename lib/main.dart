@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dipalza_movil/src/bloc/cambiar_clave_bloc.dart';
 import 'package:dipalza_movil/src/bloc/login_bloc.dart';
 import 'package:dipalza_movil/src/log/crash_reporting.dart';
+import 'package:dipalza_movil/src/log/db_log_provider.dart';
 import 'package:dipalza_movil/src/page/config/server_setup.page.dart';
 import 'package:dipalza_movil/src/page/login/auth_gate.dart';
 import 'package:dipalza_movil/src/services/api_client.dart';
@@ -36,6 +37,8 @@ Future<bool> onStart(ServiceInstance service) async {
   final prefs = PreferenciasUsuario();
   await prefs.initPrefs();
   final apiClient = ApiClient();
+  DBLogProvider.db.nuevoLog(creaLogInfo('BackgroundService', 'onStart',
+      'baseUrl=${apiClient.dio.options.baseUrl}'));
 
   // Reenvía a la UI (isolate principal) la sesión expirada detectada acá:
   // el ApiClient de este isolate es una instancia independiente, su stream
@@ -61,6 +64,8 @@ Future<bool> onStart(ServiceInstance service) async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       debugPrint('[BG] GPS desactivado, skip envío');
+      DBLogProvider.db.nuevoLog(creaLogInfo(
+          'BackgroundService', 'onStart', 'GPS desactivado, skip envío'));
       return; // espera al próximo tick
     }
 
@@ -68,6 +73,8 @@ Future<bool> onStart(ServiceInstance service) async {
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       debugPrint('[BG] Permiso de ubicación denegado, skip envío');
+      DBLogProvider.db.nuevoLog(creaLogInfo('BackgroundService', 'onStart',
+          'Permiso de ubicación denegado, skip envío'));
       return;
     }
 
@@ -75,9 +82,16 @@ Future<bool> onStart(ServiceInstance service) async {
       final posicion = await Geolocator.getCurrentPosition(
         locationSettings: locationSettings,
       );
-      await _procesarPosicion(apiClient, posicion);
+      final enviado = await _procesarPosicion(apiClient, posicion);
+      DBLogProvider.db.nuevoLog(creaLogInfo(
+          'BackgroundService',
+          'onStart',
+          (enviado ? 'Ciclo OK (enviado)' : 'Ciclo OK (encolado, envío falló)') +
+              ': ${posicion.latitude}, ${posicion.longitude}'));
     } catch (e) {
       debugPrint('[BG] Error obteniendo posición: $e');
+      DBLogProvider.db
+          .nuevoLog(creaLogError('BackgroundService', 'onStart', e.toString()));
     }
   });
 
@@ -88,15 +102,16 @@ Future<bool> onStart(ServiceInstance service) async {
 /// pendiente de ciclos anteriores). Si el envío falla por falta de
 /// conectividad u otro error, la posición se encola localmente en vez de
 /// perderse.
-Future<void> _procesarPosicion(ApiClient apiClient, Position position) async {
+Future<bool> _procesarPosicion(ApiClient apiClient, Position position) async {
   final prefs = PreferenciasUsuario();
   await prefs.initPrefs();
-  if (prefs.access_token.isEmpty || prefs.vendedor.isEmpty) return;
+  if (prefs.access_token.isEmpty || prefs.vendedor.isEmpty) return false;
 
   await _vaciarColaPendiente(apiClient);
 
   final actual = PosicionPendiente(
     vendedorId: prefs.vendedor,
+    vendedorCodigo: prefs.tipo,
     latitud: position.latitude,
     longitud: position.longitude,
     fechaHora: DateTime.now().toIso8601String(),
@@ -106,6 +121,7 @@ Future<void> _procesarPosicion(ApiClient apiClient, Position position) async {
   if (!enviado) {
     await PosicionQueueDB.instance.encolar(actual);
   }
+  return enviado;
 }
 
 Future<bool> _enviarPosicion(ApiClient apiClient, PosicionPendiente posicion) async {
@@ -114,6 +130,8 @@ Future<bool> _enviarPosicion(ApiClient apiClient, PosicionPendiente posicion) as
     return true;
   } catch (e) {
     debugPrint('Error en envío de posición: $e');
+    DBLogProvider.db.nuevoLog(
+        creaLogError('BackgroundService', '_enviarPosicion', e.toString()));
     return false;
   }
 }

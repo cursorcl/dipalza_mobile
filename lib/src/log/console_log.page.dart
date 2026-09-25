@@ -56,6 +56,11 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
                 onPressed: _forzarCrashDePrueba,
               ),
             IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Actualizar',
+              onPressed: _refrescarLogs,
+            ),
+            IconButton(
               icon: _enviandoLogs
                   ? const SizedBox(
                       width: 18,
@@ -128,6 +133,13 @@ class _ConsoleLogPageState extends State<ConsoleLogPage> {
     } finally {
       if (mounted) setState(() => _enviandoLogs = false);
     }
+  }
+
+  void _refrescarLogs() {
+    setState(() {
+      _logs.clear();
+    });
+    _loadLogs();
   }
 
   void _loadLogs() async {

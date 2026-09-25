@@ -56,6 +56,17 @@ class ApiClient {
 
     dio.interceptors.add(QueuedInterceptorsWrapper(
       onRequest: (options, handler) async {
+        // dio.options.baseUrl solo se fija al construir esta instancia (línea
+        // ~46) y ServerSetupPage lo actualiza únicamente sobre el ApiClient
+        // del isolate principal. El isolate del servicio en segundo plano
+        // tiene su propia instancia, y si se construyó antes de que
+        // pref.urlBase estuviera disponible, queda con el placeholder
+        // 'http://localhost' para siempre. Refrescarlo en cada request evita
+        // que quede obsoleto sin importar el orden de inicialización.
+        final urlBase = pref.urlBase;
+        if (urlBase.isNotEmpty) {
+          dio.options.baseUrl = urlBase;
+        }
         final token = pref.access_token;
         options.headers['Authorization'] = 'Bearer $token';
         return handler.next(options);
