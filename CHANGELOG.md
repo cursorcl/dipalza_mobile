@@ -1,3 +1,10 @@
+## [2.11.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.1...v2.11.2) (2026-09-25)
+
+
+### Bug Fixes
+
+* corrige envío de posición GPS y agrega autocompletado de clientes ([#34](https://github.com/cursorcl/dipalza_mobile/issues/34)) ([fb82059](https://github.com/cursorcl/dipalza_mobile/commit/fb82059b149ce8a9e9146ea49ea654b7703ecc38))
+
 ## [2.11.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.0...v2.11.1) (2026-09-10)
 
 
