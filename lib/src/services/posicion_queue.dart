@@ -5,6 +5,10 @@ import 'package:sqflite/sqflite.dart';
 class PosicionPendiente {
   final int? id;
   final String vendedorId;
+  // Tipo de vendedor (PreferenciasUsuario.tipo) -- junto a vendedorId forma
+  // la clave compuesta real de dbo.vendedor en el servidor. Nullable porque
+  // filas encoladas antes de que este campo existiera no lo tienen.
+  final String? vendedorCodigo;
   final double latitud;
   final double longitud;
   final String fechaHora;
@@ -12,6 +16,7 @@ class PosicionPendiente {
   PosicionPendiente({
     this.id,
     required this.vendedorId,
+    this.vendedorCodigo,
     required this.latitud,
     required this.longitud,
     required this.fechaHora,
@@ -19,6 +24,7 @@ class PosicionPendiente {
 
   Map<String, Object?> toMap() => {
         'vendedorId': vendedorId,
+        'vendedorCodigo': vendedorCodigo,
         'latitud': latitud,
         'longitud': longitud,
         'fechaHora': fechaHora,
@@ -27,6 +33,7 @@ class PosicionPendiente {
   factory PosicionPendiente.fromMap(Map<String, Object?> map) => PosicionPendiente(
         id: map['id'] as int?,
         vendedorId: map['vendedorId'] as String,
+        vendedorCodigo: map['vendedorCodigo'] as String?,
         latitud: map['latitud'] as double,
         longitud: map['longitud'] as double,
         fechaHora: map['fechaHora'] as String,
@@ -57,17 +64,24 @@ class PosicionQueueDB {
     final path = join(directory.path, 'PosicionQueue.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE posicion_pendiente (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             vendedorId TEXT NOT NULL,
+            vendedorCodigo TEXT,
             latitud REAL NOT NULL,
             longitud REAL NOT NULL,
             fechaHora TEXT NOT NULL
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+              'ALTER TABLE posicion_pendiente ADD COLUMN vendedorCodigo TEXT');
+        }
       },
     );
   }

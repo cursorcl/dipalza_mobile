@@ -38,6 +38,24 @@ class ClientesBloc {
 
   Future<void> forceRefresh() => _refrescarDesdeRed();
 
+  /// Busca y devuelve una LISTA de clientes que coincidan con el término,
+  /// por razón social o código. Búsqueda local sobre la lista ya cacheada
+  /// (ver [ensureFresh]), sin ir a red.
+  List<ClientesModel> searchClientes(String termino) {
+    if (termino.isEmpty) return [];
+
+    final listaCompleta = _clientesController.valueOrNull;
+    if (listaCompleta == null || listaCompleta.isEmpty) return [];
+
+    final terminoUpper = termino.toUpperCase();
+
+    return listaCompleta.where((cliente) {
+      final razonMatch = cliente.razon.toUpperCase().contains(terminoUpper);
+      final codigoMatch = cliente.codigo.toUpperCase().contains(terminoUpper);
+      return razonMatch || codigoMatch;
+    }).toList();
+  }
+
   Future<void> _refrescarDesdeRed() async {
     final prefs = PreferenciasUsuario();
     try {
