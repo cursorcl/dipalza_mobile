@@ -1,3 +1,4 @@
+import 'package:dipalza_movil/src/bloc/clientes_bloc.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
@@ -29,6 +30,8 @@ class _VentaEncabezadoEdicionPageState
     extends State<VentaEncabezadoEdicionPage> {
   VentaModel? ventaParaEditar;
   PreferenciasUsuario pref = PreferenciasUsuario();
+  final ClientesBloc _clientesBloc = ClientesBloc();
+  TextEditingController? _clienteController;
   bool _estaCargando = false;
   ClientesModel? _clienteSeleccionado;
   List<CondicionVentaModel> _listaCondicionesVenta = [];
@@ -43,15 +46,21 @@ class _VentaEncabezadoEdicionPageState
     _fechaFacturacion = pref.fechaFacturacion;
   }
 
-  /// Navega a tu ClientesPage y espera un resultado
+  /// Navega a la página completa de clientes (abierta con la lupa) y espera
+  /// un resultado.
   void _navegarASeleccionCliente(BuildContext context) async {
     final cliente = await AppNavigator.pushNamed(AppRoutes.clientesSeleccion);
     // Cuando vuelve (con Navigator.of(context).pop), actualizamos el estado
     if (cliente != null && cliente is ClientesModel) {
-      setState(() {
-        _clienteSeleccionado = cliente;
-      });
+      _actualizarClienteSeleccionado(cliente);
     }
+  }
+
+  void _actualizarClienteSeleccionado(ClientesModel cliente) {
+    setState(() {
+      _clienteSeleccionado = cliente;
+      _clienteController?.text = cliente.razon;
+    });
   }
 
   @override
@@ -134,33 +143,88 @@ class _VentaEncabezadoEdicionPageState
     return Card(
       elevation: 2.0,
       margin: EdgeInsets.zero,
-      child: InkWell(
-        onTap: () {
-          _navegarASeleccionCliente(context);
-        },
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: Icon(Icons.person, color: colorRojoBase()),
-          title: Text(
-            _clienteSeleccionado?.razon ?? 'Seleccionar Cliente',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: _clienteSeleccionado == null
-                  ? FontWeight.normal
-                  : FontWeight.bold,
-              color: _clienteSeleccionado == null
-                  ? Colors.grey[700]
-                  : Colors.black,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            _clienteSeleccionado?.rut != null
-                ? getFormatRut(_clienteSeleccionado!.rut) // Usando tu función
-                : 'Toca para buscar por nombre o código',
-          ),
-          trailing: const Icon(Icons.search),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Autocomplete<ClientesModel>(
+          initialValue: TextEditingValue(text: _clienteSeleccionado?.razon ?? ''),
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text.isEmpty) {
+              return const Iterable<ClientesModel>.empty();
+            }
+            return _clientesBloc.searchClientes(textEditingValue.text);
+          },
+          displayStringForOption: (ClientesModel option) => option.razon,
+          onSelected: _actualizarClienteSeleccionado,
+          fieldViewBuilder: (
+            BuildContext context,
+            TextEditingController fieldTextEditingController,
+            FocusNode fieldFocusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            _clienteController = fieldTextEditingController;
+            return TextField(
+              controller: _clienteController,
+              focusNode: fieldFocusNode,
+              autofocus: true,
+              decoration: InputDecoration(
+                icon: Icon(Icons.person, color: colorRojoBase()),
+                labelText: 'Cliente',
+                hintText: 'Escribe para buscar por nombre o código',
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  tooltip: 'Ver lista completa de clientes',
+                  onPressed: () => _navegarASeleccionCliente(context),
+                ),
+              ),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: _clienteSeleccionado == null
+                    ? FontWeight.normal
+                    : FontWeight.bold,
+              ),
+              onChanged: (value) {
+                // Si el texto deja de coincidir con el cliente ya elegido
+                // (lo está editando de nuevo), se limpia la selección para
+                // no guardar un cliente que ya no corresponde al texto.
+                if (_clienteSeleccionado != null &&
+                    value != _clienteSeleccionado!.razon) {
+                  setState(() => _clienteSeleccionado = null);
+                }
+              },
+            );
+          },
+          optionsViewBuilder: (
+            BuildContext context,
+            AutocompleteOnSelected<ClientesModel> onSelected,
+            Iterable<ClientesModel> options,
+          ) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 240),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final ClientesModel option = options.elementAt(index);
+                      return InkWell(
+                        onTap: () => onSelected(option),
+                        child: ListTile(
+                          dense: true,
+                          title: Text(option.razon),
+                          subtitle: Text(
+                              '${getFormatRut(option.rut)} · Código: ${option.codigo}'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -197,6 +261,10 @@ class _VentaEncabezadoEdicionPageState
   Future<void> _cargarDatosIniciales() async {
     setState(() => _estaCargando = true);
 
+    // No se espera: la búsqueda de clientes solo necesita la caché lista
+    // para cuando el usuario empiece a escribir, no bloquea el resto.
+    _clientesBloc.ensureFresh();
+
     try {
       _listaCondicionesVenta = await CondicionVentaProvider
           .condicionVentaProvider
@@ -230,6 +298,7 @@ class _VentaEncabezadoEdicionPageState
           orElse: () => _listaCondicionesVenta.first);
       setState(() {
         _clienteSeleccionado = cliente;
+        _clienteController?.text = cliente.razon;
         _condicionSeleccionada = condicion;
         _estaCargando = false;
       });
