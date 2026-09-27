@@ -1,3 +1,10 @@
+## [2.11.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.2...v2.11.3) (2026-09-27)
+
+
+### Bug Fixes
+
+* evita crash por setState/context tras await en pantallas de venta ([#35](https://github.com/cursorcl/dipalza_mobile/issues/35)) ([4070053](https://github.com/cursorcl/dipalza_mobile/commit/4070053610beff271bdb5c21489d6dcc5d52fb92))
+
 ## [2.11.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.1...v2.11.2) (2026-09-25)
 
 
