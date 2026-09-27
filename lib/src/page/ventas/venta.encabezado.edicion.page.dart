@@ -269,6 +269,7 @@ class _VentaEncabezadoEdicionPageState
       _listaCondicionesVenta = await CondicionVentaProvider
           .condicionVentaProvider
           .obtenerListaCondicionVenta();
+      if (!mounted) return;
       if (ventaParaEditar != null) {
         _cargarDatosParaEdicion();
       } else {
@@ -281,6 +282,7 @@ class _VentaEncabezadoEdicionPageState
       // (Aquí deberías mostrar un snackbar o alerta de error)
     }
 
+    if (!mounted) return;
     setState(() => _estaCargando = false);
   }
 
@@ -296,6 +298,7 @@ class _VentaEncabezadoEdicionPageState
       final condicion = _listaCondicionesVenta.firstWhere(
           (c) => c.codigo == venta.codigoCondicionVenta,
           orElse: () => _listaCondicionesVenta.first);
+      if (!mounted) return;
       setState(() {
         _clienteSeleccionado = cliente;
         _clienteController?.text = cliente.razon;
@@ -304,6 +307,7 @@ class _VentaEncabezadoEdicionPageState
       });
     } catch (e) {
       print('Error al cargar datos para edición: $e');
+      if (!mounted) return;
       setState(() => _estaCargando = false);
     }
   }

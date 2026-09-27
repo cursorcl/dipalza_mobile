@@ -737,6 +737,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
     try {
       final codigoProducto = _productoId!;
       final producto = await _productosProvider.obtenerProducto(codigoProducto);
+      if (!mounted) return;
       if (producto == null) {
         _mostrarError('Error: No se pudo validar el producto.');
         return;
@@ -795,8 +796,10 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       developer.log("Enviando a grabar detalle venta $json");
       final VentaModel ventaModel =
       await VentaProvider.ventaProvider.saveItemVenta(detalle);
+      if (!mounted) return;
       AppNavigator.pop(ventaModel);
     } catch (e, s) {
+      if (!mounted) return;
       showAlertDialog(context, s.toString(), Icons.error);
     }
   }
