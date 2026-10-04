@@ -1,3 +1,10 @@
+## [2.11.5](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.4...v2.11.5) (2026-10-04)
+
+
+### Bug Fixes
+
+* registra ticks del servicio de ubicación y quita token de logcat ([#37](https://github.com/cursorcl/dipalza_mobile/issues/37)) ([f75614e](https://github.com/cursorcl/dipalza_mobile/commit/f75614ec189c80b5cd1740a61af7cbe777cf0a30))
+
 ## [2.11.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.3...v2.11.4) (2026-10-04)
 
 
