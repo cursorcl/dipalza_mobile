@@ -633,34 +633,36 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
   Future<void> _cargarStockProducto(String codigo) async {
     setState(() => _estaCargandoStock = true);
     try {
-      productoEnVenta = await _productosProvider.obtenerProducto(codigo);
+      final producto = await _productosProvider.obtenerProducto(codigo);
+      if (!mounted) return;
+      productoEnVenta = producto;
 
-      if (productoEnVenta != null) {
-        _productosBloc.updatePorduct(productoEnVenta!);
-        _esNumerado = productoEnVenta!.numbered;
-        _precioLista1 = productoEnVenta!.ventaneto;
-        _precioLista2 = productoEnVenta!.precioLista2;
+      if (producto != null) {
+        _productosBloc.updatePorduct(producto);
+        _esNumerado = producto.numbered;
+        _precioLista1 = producto.ventaneto;
+        _precioLista2 = producto.precioLista2;
         _precioUnitario = _listaPrecio == 1 ? _precioLista1 : _precioLista2;
         if (_esNumerado) {
           _pesoPromedio = await _productosProvider.obtenerPesoPromedioProducto(codigo);
+          if (!mounted) return;
         }
         setState(() {
           if (_esNumerado) {
-            _stockDisponible =
-                productoEnVenta!.pieces - productoEnVenta!.piezasVentas;
+            _stockDisponible = producto.pieces - producto.piezasVentas;
           } else {
-            _stockDisponible =
-                productoEnVenta!.stock - productoEnVenta!.stockVentas;
+            _stockDisponible = producto.stock - producto.stockVentas;
           }
-          _unidadProducto = productoEnVenta!.unidad;
-          _porcentajeILA = productoEnVenta!.porcila;
+          _unidadProducto = producto.unidad;
+          _porcentajeILA = producto.porcila;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       _mostrarError('Error al cargar stock: $e');
       setState(() => _stockDisponible = 0);
     } finally {
-      setState(() => _estaCargandoStock = false);
+      if (mounted) setState(() => _estaCargandoStock = false);
     }
   }
 
