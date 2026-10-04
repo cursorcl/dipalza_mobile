@@ -39,8 +39,6 @@ class _AuthGateState extends State<AuthGate> {
     final prefs = PreferenciasUsuario();
     final refreshToken = prefs.refreshToken;
 
-    print("RefreshToken recuperado: '$refreshToken'");
-
     // Asumimos inválido por defecto
     bool isSessionValid = false;
 
