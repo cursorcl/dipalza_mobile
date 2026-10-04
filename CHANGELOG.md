@@ -1,3 +1,10 @@
+## [2.11.6](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.5...v2.11.6) (2026-10-04)
+
+
+### Bug Fixes
+
+* inicia el servicio de ubicación después del primer frame ([#38](https://github.com/cursorcl/dipalza_mobile/issues/38)) ([7ce57e0](https://github.com/cursorcl/dipalza_mobile/commit/7ce57e0af8f224b1ca006f1cd23365270cbd86b4))
+
 ## [2.11.5](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.4...v2.11.5) (2026-10-04)
 
 
