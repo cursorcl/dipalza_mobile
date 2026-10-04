@@ -207,7 +207,6 @@ void main() {
     await Permission.notification.request();
 
     setupLocator();
-    await initializeService();
     runApp(
       MultiProvider(
         providers: [
@@ -230,6 +229,11 @@ void main() {
         child: MyApp(), // Tu widget principal
       ),
     );
+
+    // El servicio se inicia después del primer frame. Si se pide antes de
+    // runApp, Android exige startForeground dentro de 5 s mientras el hilo
+    // principal todavía está armando la app (ForegroundServiceDidNotStartInTimeException).
+    WidgetsBinding.instance.addPostFrameCallback((_) => initializeService());
   }, capturarErrorDeZona);
 }
 
