@@ -59,43 +59,52 @@ Future<bool> onStart(ServiceInstance service) async {
           accuracy: LocationAccuracy.high,
         );
 
+  _registrarBG('Servicio iniciado, timer de 30 s creado');
+
   Timer.periodic(const Duration(seconds: 30), (timer) async {
-    // ✅ Guard antes de pedir posición
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      debugPrint('[BG] GPS desactivado, skip envío');
-      DBLogProvider.db.nuevoLog(creaLogInfo(
-          'BackgroundService', 'onStart', 'GPS desactivado, skip envío'));
-      return; // espera al próximo tick
-    }
-
-    final permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      debugPrint('[BG] Permiso de ubicación denegado, skip envío');
-      DBLogProvider.db.nuevoLog(creaLogInfo('BackgroundService', 'onStart',
-          'Permiso de ubicación denegado, skip envío'));
-      return;
-    }
-
+    // Todo el tick va dentro de un try: una excepción no capturada en un
+    // Timer mata el isolate y el servicio deja de reportar sin dejar rastro.
     try {
+      _registrarBG('Tick');
+
+      // ✅ Guard antes de pedir posición
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _registrarBG('GPS desactivado, skip envío');
+        return; // espera al próximo tick
+      }
+
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _registrarBG('Permiso de ubicación denegado, skip envío');
+        return;
+      }
+
       final posicion = await Geolocator.getCurrentPosition(
         locationSettings: locationSettings,
-      );
+      ).timeout(const Duration(seconds: 25));
       final enviado = await _procesarPosicion(apiClient, posicion);
-      DBLogProvider.db.nuevoLog(creaLogInfo(
-          'BackgroundService',
-          'onStart',
-          (enviado ? 'Ciclo OK (enviado)' : 'Ciclo OK (encolado, envío falló)') +
-              ': ${posicion.latitude}, ${posicion.longitude}'));
-    } catch (e) {
-      debugPrint('[BG] Error obteniendo posición: $e');
-      DBLogProvider.db
-          .nuevoLog(creaLogError('BackgroundService', 'onStart', e.toString()));
+      _registrarBG((enviado
+              ? 'Ciclo OK (enviado)'
+              : 'Ciclo OK (encolado, envío falló)') +
+          ': ${posicion.latitude}, ${posicion.longitude}');
+    } catch (e, st) {
+      _registrarBG('Error en tick: $e\n$st', error: true);
     }
   });
 
   return true;
+}
+
+/// Deja el mensaje en logcat (tag flutter, también en release) y en la
+/// tabla de logs de la app, visible desde la pantalla de logs.
+void _registrarBG(String mensaje, {bool error = false}) {
+  debugPrint('[BG] $mensaje');
+  final log = error
+      ? creaLogError('BackgroundService', 'onStart', mensaje)
+      : creaLogInfo('BackgroundService', 'onStart', mensaje);
+  DBLogProvider.db.nuevoLog(log).catchError((_) => 0);
 }
 
 /// Envía la posición actual (reintentando antes lo que haya quedado
