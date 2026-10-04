@@ -1,3 +1,10 @@
+## [2.11.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.3...v2.11.4) (2026-10-04)
+
+
+### Bug Fixes
+
+* evita crash por setState tras await en carga de stock del detalle de venta ([#36](https://github.com/cursorcl/dipalza_mobile/issues/36)) ([03adb6f](https://github.com/cursorcl/dipalza_mobile/commit/03adb6fa0860691ad8fcd61c31c1b43ac2fedbe2))
+
 ## [2.11.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.2...v2.11.3) (2026-09-27)
 
 
