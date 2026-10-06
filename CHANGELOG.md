@@ -1,3 +1,10 @@
+## [2.11.7](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.6...v2.11.7) (2026-10-06)
+
+
+### Bug Fixes
+
+* evita null check al eliminar venta desde el listado ([#39](https://github.com/cursorcl/dipalza_mobile/issues/39)) ([899e89d](https://github.com/cursorcl/dipalza_mobile/commit/899e89d1753295cb50a561d4563c75134400af83))
+
 ## [2.11.6](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.5...v2.11.6) (2026-10-04)
 
 
