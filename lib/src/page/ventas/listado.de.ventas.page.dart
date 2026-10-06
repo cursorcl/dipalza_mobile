@@ -279,10 +279,14 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
               child:
               const Text('Eliminar', style: TextStyle(color: Colors.red)),
               onPressed: () async {
+                // Se capturan antes del await: el context del diálogo puede
+                // quedar desmontado mientras se espera la respuesta.
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
                 final result =
                 await VentaProvider.ventaProvider.removeVenta(venta.id);
                 if (result == false) {
-                  ScaffoldMessenger.of(context)
+                  messenger
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
                       const SnackBar(
@@ -304,7 +308,8 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 }
 
                 // 2. Cierra el diálogo y refresca la lista
-                Navigator.of(context).pop();
+                navigator.pop();
+                if (!mounted) return;
                 _cargarVentas();
               },
             ),
