@@ -17,3 +17,24 @@ Future<void> detenerServicioUbicacion() async {
     service.invoke('stopService');
   }
 }
+
+/// Nombre del mensaje que la UI (isolate principal) usa para avisarle al
+/// isolate del servicio de ubicación que hay credenciales nuevas (login
+/// recién hecho). El ApiClient/PreferenciasUsuario de ese isolate vive
+/// desde el arranque en frío y no se recrea entre logins — sin este aviso,
+/// puede seguir usando tokens/flags de refresh de una sesión anterior hasta
+/// el próximo tick de 30 s (o indefinidamente si quedó un estado de
+/// "sesión expirada" ya resuelto por el login nuevo).
+const String kMensajeCredencialesActualizadas = 'credencialesActualizadas';
+
+/// Avisa al servicio de ubicación que vuelva a leer las credenciales y
+/// descarte cualquier estado de refresh colgado de la sesión anterior.
+/// Llamar justo después de un login exitoso. Si el servicio no está
+/// corriendo (p.ej. permisos de ubicación denegados) no hace nada.
+Future<void> notificarCredencialesActualizadas() async {
+  final service = FlutterBackgroundService();
+  final running = await service.isRunning();
+  if (running) {
+    service.invoke(kMensajeCredencialesActualizadas);
+  }
+}

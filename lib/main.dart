@@ -45,6 +45,16 @@ Future<bool> onStart(ServiceInstance service) async {
   // onSessionExpired no llega solo al listener de MyApp.
   apiClient.onSessionExpired.listen((_) => service.invoke(kMensajeSesionExpirada));
 
+  // Este isolate vive desde el arranque en frío y no se recrea entre
+  // logins: tras uno nuevo, releer las credenciales (en vez de esperar al
+  // próximo tick de 30 s) y descartar cualquier flag de refresh colgado de
+  // la sesión anterior (ver notificarCredencialesActualizadas).
+  service.on(kMensajeCredencialesActualizadas).listen((_) async {
+    await prefs.initPrefs();
+    apiClient.resetEstadoRefresh();
+    _registrarBG('Credenciales releídas tras login');
+  });
+
   // Android e iOS: timer cada 30 segundos. Se usa un timer en ambas
   // plataformas (en vez de un stream por distancia en iOS) para que la
   // posición se reporte de forma regular aunque el dispositivo esté quieto.
