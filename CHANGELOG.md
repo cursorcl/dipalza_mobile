@@ -1,3 +1,10 @@
+## [2.11.8](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.7...v2.11.8) (2026-10-15)
+
+
+### Bug Fixes
+
+* estabiliza sesión y batería en segundo plano ([#40](https://github.com/cursorcl/dipalza_mobile/issues/40)) ([f2f7137](https://github.com/cursorcl/dipalza_mobile/commit/f2f7137fc9ed981c34cc0bd0b8b869052533b411))
+
 ## [2.11.7](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.6...v2.11.7) (2026-10-06)
 
 
