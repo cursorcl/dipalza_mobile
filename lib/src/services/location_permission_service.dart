@@ -75,6 +75,49 @@ Future<bool?> _mostrarRationale(BuildContext context) {
   );
 }
 
+/// Pide al sistema que excluya la app de la optimización de batería (Doze /
+/// app standby). Mitiga que el servicio de ubicación en segundo plano tarde
+/// en arrancar o se corte en fabricantes agresivos con el ahorro de batería
+/// (Samsung "Device Care" en particular) -- causa más probable de los
+/// `ForegroundServiceDidNotStartInTimeException` reportados por clientes. No
+/// bloquea el flujo si el usuario la rechaza: es una mitigación, no un
+/// permiso indispensable para que la app funcione.
+Future<void> solicitarExclusionDeOptimizacionDeBateria(BuildContext context) async {
+  if (await Permission.ignoreBatteryOptimizations.isGranted) return;
+
+  if (!context.mounted) return;
+  final continuar = await _mostrarRationaleBateria(context);
+  if (continuar != true) return;
+
+  final status = await Permission.ignoreBatteryOptimizations.request();
+  debugPrint('[Permisos] ignoreBatteryOptimizations.request() -> $status');
+}
+
+Future<bool?> _mostrarRationaleBateria(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Optimización de batería'),
+      content: const Text(
+        'Para que el seguimiento de ubicación no se corte en segundo plano, '
+        'permite que Dipalza se excluya de la optimización de batería en '
+        'la siguiente pantalla.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Ahora no'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('Continuar'),
+        ),
+      ],
+    ),
+  );
+}
+
 Future<void> _mostrarDialogoAjustes(BuildContext context) {
   return showDialog(
     context: context,

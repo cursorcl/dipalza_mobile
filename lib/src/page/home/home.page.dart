@@ -50,6 +50,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       await solicitarPermisoUbicacionSiempre(context);
+      if (!mounted) return;
+      await solicitarExclusionDeOptimizacionDeBateria(context);
       _verificarPermisoUbicacion();
       if (!mounted) return;
       verificarNuevaVersionDisponible(context);

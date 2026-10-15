@@ -179,6 +179,23 @@ class ApiClient {
     _sessionExpiredController.add(null);
   }
 
+  /// Limpia el estado de refresco acumulado (flags + cola de espera) sin
+  /// tocar las credenciales. Se usa cuando este ApiClient vive en un isolate
+  /// que no se reinicia entre sesiones (el del servicio de ubicación en
+  /// segundo plano): tras un login nuevo, cualquier `_sessionNotified` o
+  /// completers colgados de la sesión anterior deben descartarse para que
+  /// no arrastren un estado "sesión expirada" que ya no corresponde.
+  void resetEstadoRefresh() {
+    for (final completer in _refreshQueue) {
+      if (!completer.isCompleted) {
+        completer.complete(false);
+      }
+    }
+    _refreshQueue.clear();
+    _isRefreshing = false;
+    _sessionNotified = false;
+  }
+
   void dispose() {
     _sessionExpiredController.close();
   }

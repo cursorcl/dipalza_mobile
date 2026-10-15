@@ -14,6 +14,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Mitiga ForegroundServiceDidNotStartInTimeException en fabricantes agresivos
+         con el ahorro de batería (Samsung Device Care en particular): sin esto, el
+         OS puede demorar el arranque del servicio de ubicación más allá del límite
+         de 10s que exige Android para startForegroundService(). -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

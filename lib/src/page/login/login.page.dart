@@ -8,6 +8,7 @@ import 'package:dipalza_movil/src/model/respuesta_model.dart';
 import 'package:dipalza_movil/src/model/rutas_model.dart';
 import 'package:dipalza_movil/src/provider/vendedor_provider.dart';
 import 'package:dipalza_movil/src/provider/vendedor_ruta_provider.dart';
+import 'package:dipalza_movil/src/services/background_location_service.dart';
 import 'package:dipalza_movil/src/services/connectivity_service.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
@@ -352,6 +353,7 @@ class _LoginPageState extends State<LoginPage> {
       prefs.access_token = response.accessToken;
       prefs.refreshToken = response.refreshToken;
       prefs.tipo = response.tipo;
+      await notificarCredencialesActualizadas();
 
       // Se guarda como String en formato ISO 8601 (estándar y robusto)
       if (_fechaFacturacion != null) {
