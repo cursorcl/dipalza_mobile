@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.8...v2.12.0) (2026-10-20)
+
+
+### Features
+
+* mueve los botones "agregar" al AppBar en vez de FAB flotante ([#41](https://github.com/cursorcl/dipalza_mobile/issues/41)) ([1f04d18](https://github.com/cursorcl/dipalza_mobile/commit/1f04d18c377477118e033ec7c88234a155971f48))
+
 ## [2.11.8](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.7...v2.11.8) (2026-10-15)
 
 
