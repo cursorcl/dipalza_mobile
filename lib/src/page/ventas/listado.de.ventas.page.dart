@@ -49,16 +49,29 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
           'Ventas',
           style: TextStyle(color: Colors.white),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await AppNavigator.pushNamed(
-            AppRoutes.nuevaVenta,
-          );
-          _cargarVentas();
-        },
-        child: const Icon(Icons.add),
-        backgroundColor: colorRojoBase(), // Usa tu color
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: TextButton.icon(
+              onPressed: () async {
+                await AppNavigator.pushNamed(
+                  AppRoutes.nuevaVenta,
+                );
+                _cargarVentas();
+              },
+              icon: const Icon(Icons.add, size: 20),
+              label: const Text("Nueva Venta"),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white.withOpacity(0.35),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
+            ),
+          ),
+        ],
       ),
       body: _creaListaVentas(context),
     );

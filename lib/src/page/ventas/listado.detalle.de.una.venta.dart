@@ -43,8 +43,27 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: !widget.esEdicion,
+        leadingWidth: widget.esEdicion ? 140 : null,
         leading: widget.esEdicion
-            ? null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0, vertical: 8.0),
+                child: TextButton.icon(
+                  onPressed: () {
+                    _inicializarNuevaVenta(context);
+                  },
+                  icon: const Icon(Icons.add, size: 20),
+                  label: const Text("Agregar"),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white.withOpacity(0.35),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                ),
+              )
             : BackButton(
                 onPressed: () => AppNavigator.pop(),
               ),
@@ -66,7 +85,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
                     label: const Text("Finalizar"),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: Colors.white.withOpacity(0.15),
+                      backgroundColor: Colors.white.withOpacity(0.35),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -76,16 +95,6 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
                 ),
               ],
       ),
-      floatingActionButton: widget.esEdicion
-          ? FloatingActionButton(
-              elevation: 10,
-              tooltip: 'Agregar Item',
-              child: const Icon(Icons.add),
-              backgroundColor: colorRojoBase(),
-              onPressed: () {
-                _inicializarNuevaVenta(context);
-              })
-          : null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
