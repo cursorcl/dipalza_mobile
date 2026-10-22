@@ -1,3 +1,10 @@
+## [2.12.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.2...v2.12.3) (2026-10-22)
+
+
+### Bug Fixes
+
+* evita refetch duplicado de producto al guardar un item de venta ([#44](https://github.com/cursorcl/dipalza_mobile/issues/44)) ([9bbe268](https://github.com/cursorcl/dipalza_mobile/commit/9bbe2688277ead10fc741add2a2c956580cb8650))
+
 ## [2.12.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.1...v2.12.2) (2026-10-22)
 
 
