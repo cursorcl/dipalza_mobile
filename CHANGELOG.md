@@ -1,3 +1,10 @@
+## [2.12.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.1...v2.12.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* evita recargar condiciones de venta por red cada vez que se abre una venta nueva ([#43](https://github.com/cursorcl/dipalza_mobile/issues/43)) ([0366a46](https://github.com/cursorcl/dipalza_mobile/commit/0366a464bcd2c22d9fc3f4b42835754fd1fb3bd7))
+
 ## [2.12.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.0...v2.12.1) (2026-10-22)
 
 
