@@ -24,6 +24,22 @@ class CondicionVentaBloc {
     obtenerListaCondicionesVenta();
   }
 
+  /// Devuelve la lista ya cacheada en memoria si existe (sin ir a red); solo
+  /// vuelve a pedirla si nunca se obtuvo con éxito (primera vez, o el
+  /// intento anterior falló). Evita repetir la consulta cada vez que se abre
+  /// la pantalla de nueva venta -- este bloc es un singleton (ver locator.dart)
+  /// que vive durante toda la sesión de la app.
+  Future<List<CondicionVentaModel>> ensureFresh() async {
+    if (_condicionVentaController.hasValue) {
+      return _condicionVentaController.value;
+    }
+    await obtenerListaCondicionesVenta();
+    if (!_condicionVentaController.hasValue && _condicionVentaController.hasError) {
+      throw _condicionVentaController.error;
+    }
+    return _condicionVentaController.valueOrNull ?? [];
+  }
+
   Future<void> obtenerListaCondicionesVenta() async {
     // Añadimos un try-catch por robustez.
     try {

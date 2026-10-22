@@ -1,6 +1,8 @@
 import 'package:dipalza_movil/src/bloc/clientes_bloc.dart';
+import 'package:dipalza_movil/src/bloc/condicion_venta_bloc.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
+import 'package:dipalza_movil/src/services/locator.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/utils.dart'; // Para colorRojoBase() y getFormatRut()
 import 'package:flutter/material.dart';
@@ -9,7 +11,6 @@ import 'package:intl/intl.dart';
 import '../../model/condicion_venta_model.dart';
 import '../../model/venta_model.dart';
 import '../../provider/cliente_provider.dart';
-import '../../provider/condicion_venta_provider.dart';
 import '../../share/app.navigator.dart';
 import '../../share/estado.venta.dart';
 import '../../share/prefs_usuario.dart';
@@ -266,9 +267,8 @@ class _VentaEncabezadoEdicionPageState
     _clientesBloc.ensureFresh();
 
     try {
-      _listaCondicionesVenta = await CondicionVentaProvider
-          .condicionVentaProvider
-          .obtenerListaCondicionVenta();
+      _listaCondicionesVenta =
+          await locator<CondicionVentaBloc>().ensureFresh();
       if (!mounted) return;
       if (ventaParaEditar != null) {
         _cargarDatosParaEdicion();
