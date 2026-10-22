@@ -2,6 +2,7 @@ import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/page/ventas/venta.item.detelle.view.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
+import 'package:dipalza_movil/src/utils/alert_util.dart' as alertUtil;
 import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -30,6 +31,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
   Object? _errorCargaDetalles;
   late VentaModel _venta;
   int cantidadVentas = 0;
+  bool _finalizando = false;
 
   @override
   void initState() {
@@ -80,9 +82,18 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
                       horizontal: 8.0,
                       vertical: 8.0), // Margen para que no toque los bordes
                   child: TextButton.icon(
-                    onPressed: _finalizarVenta,
-                    icon: const Icon(Icons.check_circle_outline, size: 20),
-                    label: const Text("Finalizar"),
+                    onPressed: _finalizando ? null : _finalizarVenta,
+                    icon: _finalizando
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline, size: 20),
+                    label: Text(_finalizando ? "Finalizando..." : "Finalizar"),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.white.withOpacity(0.35),
@@ -274,9 +285,20 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
   }
 
   Future<void> _finalizarVenta() async {
-    _venta = await VentaProvider.ventaProvider
-        .cambiarEstadoVenta(_venta, EstadoVenta.FINISHED);
-    AppNavigator.popUntilFirst();
+    setState(() => _finalizando = true);
+    try {
+      _venta = await VentaProvider.ventaProvider
+          .cambiarEstadoVenta(_venta, EstadoVenta.FINISHED);
+      AppNavigator.popUntilFirst();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _finalizando = false);
+      await alertUtil.showAlertDialog(
+        context,
+        'No se pudo finalizar la venta. Revisa tu conexión e intenta nuevamente.',
+        Icons.error_outline,
+      );
+    }
   }
 
   void _eliminarItem(BuildContext context, VentaDetalleModel item) {
