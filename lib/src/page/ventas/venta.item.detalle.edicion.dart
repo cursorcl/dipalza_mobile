@@ -738,7 +738,15 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
     }
     try {
       final codigoProducto = _productoId!;
-      final producto = await _productosProvider.obtenerProducto(codigoProducto);
+      // Si _cargarStockProducto() ya terminó (caso normal: el usuario tardó
+      // algo en completar cantidad/descuento), productoEnVenta ya tiene el
+      // dato recién pedido a red -- volver a pedirlo es redundante, no se usa
+      // para ningún chequeo de stock que bloquee el guardado (ver _guardar()
+      // más abajo: stockReal se calcula igual con productoEnVenta). Solo si
+      // sigue cargando (usuario guardó muy rápido) se espera el fetch en curso.
+      final producto = _estaCargandoStock
+          ? await _productosProvider.obtenerProducto(codigoProducto)
+          : productoEnVenta;
       if (!mounted) return;
       if (producto == null) {
         _mostrarError('Error: No se pudo validar el producto.');
