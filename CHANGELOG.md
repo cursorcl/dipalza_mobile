@@ -1,3 +1,10 @@
+## [2.12.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.0...v2.12.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* muestra error al vendedor si Finalizar venta falla, en vez de fallar en silencio ([#42](https://github.com/cursorcl/dipalza_mobile/issues/42)) ([52a23f9](https://github.com/cursorcl/dipalza_mobile/commit/52a23f9d07b8cf8fc6d5885c8411d545890c8d79))
+
 # [2.12.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.11.8...v2.12.0) (2026-10-20)
 
 
