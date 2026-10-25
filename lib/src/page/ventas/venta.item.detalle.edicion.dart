@@ -418,7 +418,9 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
               'Stock:',
               _estaCargandoStock
                   ? 'Cargando...'
-                  : '${formatNumber(_stockDisponible)} ($_unidadProducto)',
+                  // Para numerados, _stockDisponible es un conteo de piezas (producto.pieces),
+                  // no un peso -- mostrar la unidad del producto (p.ej. "KIL") sería engañoso.
+                  : '${formatNumber(_stockDisponible)} (${_esNumerado ? 'pz' : _unidadProducto})',
               valueColor: _stockDisponible > 0 ? Colors.blueAccent : Colors.red,
               fontSize: 13,
             ),
