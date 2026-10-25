@@ -1,3 +1,10 @@
+## [2.12.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.3...v2.12.4) (2026-10-25)
+
+
+### Bug Fixes
+
+* el stock de productos numerados se mostraba en kilos en vez de piezas ([#45](https://github.com/cursorcl/dipalza_mobile/issues/45)) ([4dec2e3](https://github.com/cursorcl/dipalza_mobile/commit/4dec2e3075f25343d6708a8ef3a035ca58768102))
+
 ## [2.12.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.2...v2.12.3) (2026-10-22)
 
 
