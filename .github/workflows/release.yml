@@ -67,3 +67,75 @@ jobs:
         run: npx semantic-release ${{ inputs.dry_run && '--dry-run' || '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # El apk solo existe en el workspace si semantic-release efectivamente
+      # publicó una versión nueva (ver release.config.js: publishCmd lo
+      # compila ahí) -- en dry-run, o cuando "no hay cambios releasable", ese
+      # paso ni corre. Por eso el guard es la existencia del archivo, no un
+      # chequeo aparte de dry-run/inputs.
+      #
+      # Requiere, como secrets/variables del repo (ver runbook en el PR):
+      #   MDM_CLIENT_ID / MDM_CLIENT_SECRET / MDM_REFRESH_TOKEN (OAuth Zoho,
+      #   self-client con scope MDMOnDemand.MDMDeviceMgmt.CREATE)
+      #   MDM_APP_ID / MDM_RELEASE_LABEL_ID (de la app ya creada una vez a
+      #   mano en el App Repository de ManageEngine MDM)
+      - name: Publicar nueva versión del apk en ManageEngine MDM
+        env:
+          MDM_BASE_URL: https://mdm.manageengine.com
+          MDM_ACCOUNTS_URL: https://accounts.zoho.com
+          MDM_CLIENT_ID: ${{ secrets.MDM_CLIENT_ID }}
+          MDM_CLIENT_SECRET: ${{ secrets.MDM_CLIENT_SECRET }}
+          MDM_REFRESH_TOKEN: ${{ secrets.MDM_REFRESH_TOKEN }}
+          MDM_APP_ID: ${{ vars.MDM_APP_ID }}
+          MDM_RELEASE_LABEL_ID: ${{ vars.MDM_RELEASE_LABEL_ID }}
+        run: |
+          set -euo pipefail
+
+          APK_FILE=$(ls build/app/outputs/flutter-apk/dipalza-release-*.apk 2>/dev/null | head -1 || true)
+          if [[ -z "$APK_FILE" ]]; then
+            echo "No se publicó una versión nueva en este run -- nada que subir a MDM."
+            exit 0
+          fi
+
+          if [[ -z "${MDM_APP_ID:-}" || -z "${MDM_RELEASE_LABEL_ID:-}" ]]; then
+            echo "::warning::MDM_APP_ID/MDM_RELEASE_LABEL_ID no están configurados -- se omite la publicación en ManageEngine MDM. Ver el runbook para el setup inicial (subir el apk una vez a mano en el App Repository)."
+            exit 0
+          fi
+
+          VERSION=$(basename "$APK_FILE" | sed -E 's/dipalza-release-(.*)\.apk/\1/')
+          echo "Publicando ${APK_FILE} (versión ${VERSION}) en MDM..."
+
+          ACCESS_TOKEN=$(curl -sS --request POST "${MDM_ACCOUNTS_URL}/oauth/v2/token" \
+            --data-urlencode "refresh_token=${MDM_REFRESH_TOKEN}" \
+            --data-urlencode "client_id=${MDM_CLIENT_ID}" \
+            --data-urlencode "client_secret=${MDM_CLIENT_SECRET}" \
+            --data-urlencode "grant_type=refresh_token" | jq -r '.access_token')
+          if [[ -z "$ACCESS_TOKEN" || "$ACCESS_TOKEN" == "null" ]]; then
+            echo "::error::No se pudo obtener el access_token de Zoho."
+            exit 1
+          fi
+
+          FILE_ID=$(curl -sS --request POST "${MDM_BASE_URL}/emsapi/files" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "module: MDM_APP_MGMT" \
+            --form "fileName=@${APK_FILE}" | jq -r '.fileID')
+          if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
+            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta)."
+            exit 1
+          fi
+
+          echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
+          curl -sS --fail --request PUT \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "content-type: application/json" \
+            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"force_update_in_label\": false}"
+
+          echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
+          curl -sS --fail --request POST \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}/approve" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "content-type: application/json" \
+            --data '{"silent_install": true, "retire_old_version": true, "notify_user_via_email": false, "distribute_update": true}'
+
+          echo "Versión ${VERSION} publicada y distribuida en ManageEngine MDM."
