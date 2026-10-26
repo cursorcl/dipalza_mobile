@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.4...v2.13.0) (2026-10-26)
+
+
+### Features
+
+* publica automáticamente cada apk nuevo en ManageEngine MDM ([#46](https://github.com/cursorcl/dipalza_mobile/issues/46)) ([a7eaa7e](https://github.com/cursorcl/dipalza_mobile/commit/a7eaa7e2ae824f4c5da9197de2ccc54c1b236a4e))
+
 ## [2.12.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.3...v2.12.4) (2026-10-25)
 
 
