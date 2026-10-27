@@ -105,34 +105,38 @@ jobs:
           VERSION=$(basename "$APK_FILE" | sed -E 's/dipalza-release-(.*)\.apk/\1/')
           echo "Publicando ${APK_FILE} (versión ${VERSION}) en MDM..."
 
-          ACCESS_TOKEN=$(curl -sS --request POST "${MDM_ACCOUNTS_URL}/oauth/v2/token" \
+          TOKEN_RESPONSE=$(curl -sS --request POST "${MDM_ACCOUNTS_URL}/oauth/v2/token" \
             --data-urlencode "refresh_token=${MDM_REFRESH_TOKEN}" \
             --data-urlencode "client_id=${MDM_CLIENT_ID}" \
             --data-urlencode "client_secret=${MDM_CLIENT_SECRET}" \
-            --data-urlencode "grant_type=refresh_token" | jq -r '.access_token')
+            --data-urlencode "grant_type=refresh_token")
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
           if [[ -z "$ACCESS_TOKEN" || "$ACCESS_TOKEN" == "null" ]]; then
-            echo "::error::No se pudo obtener el access_token de Zoho."
+            # La respuesta de Zoho ante un error NO incluye el refresh_token/client_secret
+            # que mandamos -- es seguro mostrarla completa para diagnosticar.
+            echo "::error::No se pudo obtener el access_token de Zoho. Respuesta: ${TOKEN_RESPONSE}"
             exit 1
           fi
 
-          FILE_ID=$(curl -sS --request POST "${MDM_BASE_URL}/emsapi/files" \
+          FILE_RESPONSE=$(curl -sS --request POST "${MDM_BASE_URL}/emsapi/files" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "module: MDM_APP_MGMT" \
-            --form "fileName=@${APK_FILE}" | jq -r '.fileID')
+            --form "fileName=@${APK_FILE}")
+          FILE_ID=$(echo "$FILE_RESPONSE" | jq -r '.fileID')
           if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
-            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta)."
+            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta). Respuesta: ${FILE_RESPONSE}"
             exit 1
           fi
 
           echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
-          curl -sS --fail --request PUT \
+          curl -sS --fail-with-body --request PUT \
             "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "content-type: application/json" \
             --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"force_update_in_label\": false}"
 
           echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
-          curl -sS --fail --request POST \
+          curl -sS --fail-with-body --request POST \
             "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}/approve" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "content-type: application/json" \
