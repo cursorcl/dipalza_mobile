@@ -122,9 +122,17 @@ jobs:
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "module: MDM_APP_MGMT" \
             --form "fileName=@${APK_FILE}")
-          FILE_ID=$(echo "$FILE_RESPONSE" | jq -r '.fileID')
+          # La API responde a veces un objeto ({"fileID": ...}) y a veces un array
+          # ([{"fileID": ...}]) -- se soportan ambas formas sin asumir cuál es. El
+          # "|| true" evita que un error de tipo de jq aborte el script (set -e +
+          # pipefail) antes de llegar al "if" de abajo, que es lo que pasó la
+          # primera vez que esto falló (ver PR que agregó este comentario).
+          FILE_ID=$(echo "$FILE_RESPONSE" | jq -r '
+            if type == "array" then (.[0].fileID // empty)
+            elif type == "object" then (.fileID // .data.fileID // empty)
+            else empty end' 2>/dev/null || true)
           if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
-            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta). Respuesta: ${FILE_RESPONSE}"
+            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta). Respuesta cruda: ${FILE_RESPONSE}"
             exit 1
           fi
 
