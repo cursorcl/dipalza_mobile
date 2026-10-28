@@ -1,3 +1,10 @@
+## [2.13.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.3...v2.13.4) (2026-10-28)
+
+
+### Bug Fixes
+
+* agrega app_name y bundle_identifier al registrar versión en MDM ([#50](https://github.com/cursorcl/dipalza_mobile/issues/50)) ([29fec35](https://github.com/cursorcl/dipalza_mobile/commit/29fec357a73284282b345571c14baafde7b49e72))
+
 ## [2.13.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.2...v2.13.3) (2026-10-28)
 
 
