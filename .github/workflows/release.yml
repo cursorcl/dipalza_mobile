@@ -137,6 +137,22 @@ jobs:
           fi
 
           echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
+          # La API exige también app_name/bundle_identifier en este PUT, aunque la
+          # app ya exista -- se leen del detalle actual de la app (GET) en vez de
+          # hardcodearlos, para no ir adivinando campo por campo cada vez que la
+          # API agregue un requisito nuevo (ya pasó con app_type/platform_type).
+          APP_DETAILS=$(curl -sS --request GET \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}")
+          APP_NAME=$(echo "$APP_DETAILS" | jq -r '.app_name // empty' 2>/dev/null || true)
+          BUNDLE_IDENTIFIER=$(echo "$APP_DETAILS" | jq -r '.bundle_identifier // empty' 2>/dev/null || true)
+          if [[ -z "$APP_NAME" || -z "$BUNDLE_IDENTIFIER" ]]; then
+            echo "::error::No se pudo obtener app_name/bundle_identifier de MDM para registrar la nueva versión. Respuesta: ${APP_DETAILS}"
+            exit 1
+          fi
+          APP_NAME_JSON=$(jq -n --arg v "$APP_NAME" '$v')
+          BUNDLE_IDENTIFIER_JSON=$(jq -n --arg v "$BUNDLE_IDENTIFIER" '$v')
+
           # app_type=2 (Enterprise App) y platform_type=2 (Android) son requeridos
           # por la API aunque la documentación no los marque como obligatorios --
           # sin ellos responde 400 "parameter app_type used is below the minimum
@@ -145,7 +161,7 @@ jobs:
             "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "content-type: application/json" \
-            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"app_type\": 2, \"platform_type\": 2, \"force_update_in_label\": false}"
+            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"app_type\": 2, \"platform_type\": 2, \"app_name\": ${APP_NAME_JSON}, \"bundle_identifier\": ${BUNDLE_IDENTIFIER_JSON}, \"force_update_in_label\": false}"
 
           echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
           curl -sS --fail-with-body --request POST \
