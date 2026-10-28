@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.0...v2.13.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* muestra la respuesta de Zoho/MDM cuando falla la publicación del apk ([#47](https://github.com/cursorcl/dipalza_mobile/issues/47)) ([989c62d](https://github.com/cursorcl/dipalza_mobile/commit/989c62dba8cfe0abdba2adf96f8c081ef463cf4e))
+
 # [2.13.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.12.4...v2.13.0) (2026-10-26)
 
 
