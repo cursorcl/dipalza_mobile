@@ -1,3 +1,10 @@
+## [2.13.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.2...v2.13.3) (2026-10-28)
+
+
+### Bug Fixes
+
+* agrega app_type y platform_type al registrar versión en MDM ([#49](https://github.com/cursorcl/dipalza_mobile/issues/49)) ([2c38627](https://github.com/cursorcl/dipalza_mobile/commit/2c38627e391f4a167afa9098989967f1d9d8d982))
+
 ## [2.13.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.1...v2.13.2) (2026-10-28)
 
 
