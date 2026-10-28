@@ -137,11 +137,15 @@ jobs:
           fi
 
           echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
+          # app_type=2 (Enterprise App) y platform_type=2 (Android) son requeridos
+          # por la API aunque la documentación no los marque como obligatorios --
+          # sin ellos responde 400 "parameter app_type used is below the minimum
+          # requirement" (IAM0021).
           curl -sS --fail-with-body --request PUT \
             "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "content-type: application/json" \
-            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"force_update_in_label\": false}"
+            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"app_type\": 2, \"platform_type\": 2, \"force_update_in_label\": false}"
 
           echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
           curl -sS --fail-with-body --request POST \
