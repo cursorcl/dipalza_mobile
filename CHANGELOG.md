@@ -1,3 +1,10 @@
+## [2.13.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.1...v2.13.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* parsea fileID de respuesta array u objeto al publicar apk en MDM ([#48](https://github.com/cursorcl/dipalza_mobile/issues/48)) ([95d1b32](https://github.com/cursorcl/dipalza_mobile/commit/95d1b32b1e56d7cc090fa477c51d5cd1b6d2828c))
+
 ## [2.13.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.0...v2.13.1) (2026-10-27)
 
 
