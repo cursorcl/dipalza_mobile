@@ -1,3 +1,10 @@
+## [2.13.5](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.4...v2.13.5) (2026-10-28)
+
+
+### Bug Fixes
+
+* corrige la URL del GET de detalle de app en MDM ([#51](https://github.com/cursorcl/dipalza_mobile/issues/51)) ([d6e4b21](https://github.com/cursorcl/dipalza_mobile/commit/d6e4b21843476f7366aea7624941ca1f4496cfb8))
+
 ## [2.13.4](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.3...v2.13.4) (2026-10-28)
 
 
