@@ -141,13 +141,19 @@ jobs:
           # app ya exista -- se leen del detalle actual de la app (GET) en vez de
           # hardcodearlos, para no ir adivinando campo por campo cada vez que la
           # API agregue un requisito nuevo (ya pasó con app_type/platform_type).
-          APP_DETAILS=$(curl -sS --request GET \
-            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
+          # La doc de ManageEngine es inconsistente sobre esta URL (el título de la
+          # sección dice sin "/labels/{id}", los ejemplos lo incluyen) -- la primera
+          # vez con "/labels/{id}" devolvió respuesta vacía (probable 404), por eso
+          # va sin ese segmento y se loguea el status HTTP además del body si falla.
+          APP_DETAILS_RAW=$(curl -sS --write-out '\nHTTP_STATUS:%{http_code}' --request GET \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}")
+          APP_DETAILS=$(echo "$APP_DETAILS_RAW" | sed '$d')
+          APP_DETAILS_STATUS=$(echo "$APP_DETAILS_RAW" | tail -1)
           APP_NAME=$(echo "$APP_DETAILS" | jq -r '.app_name // empty' 2>/dev/null || true)
           BUNDLE_IDENTIFIER=$(echo "$APP_DETAILS" | jq -r '.bundle_identifier // empty' 2>/dev/null || true)
           if [[ -z "$APP_NAME" || -z "$BUNDLE_IDENTIFIER" ]]; then
-            echo "::error::No se pudo obtener app_name/bundle_identifier de MDM para registrar la nueva versión. Respuesta: ${APP_DETAILS}"
+            echo "::error::No se pudo obtener app_name/bundle_identifier de MDM para registrar la nueva versión (${APP_DETAILS_STATUS}). Respuesta: ${APP_DETAILS}"
             exit 1
           fi
           APP_NAME_JSON=$(jq -n --arg v "$APP_NAME" '$v')
