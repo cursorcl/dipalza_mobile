@@ -1,3 +1,10 @@
+## [2.13.6](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.5...v2.13.6) (2026-10-30)
+
+
+### Bug Fixes
+
+* oculta eliminar/modificar y marca como facturada una venta CLOSED ([#52](https://github.com/cursorcl/dipalza_mobile/issues/52)) ([63aa5d0](https://github.com/cursorcl/dipalza_mobile/commit/63aa5d0873cebfea6244b82b704c1911a3a90a42))
+
 ## [2.13.5](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.4...v2.13.5) (2026-10-28)
 
 
