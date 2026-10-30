@@ -1,6 +1,7 @@
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
+import 'package:dipalza_movil/src/share/estado.venta.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -177,45 +178,53 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   }
 
   Widget _widgetItemOfVenta(VentaModel itemVenta) {
+    // Facturada (CLOSED): el server la rechaza por estado (no se puede
+    // modificar ni borrar), así que acá ni se ofrecen esas acciones --
+    // antes se mostraban igual y el usuario recién se enteraba al chocar
+    // con el error del server.
+    final bool facturada = itemVenta.estadoVenta == EstadoVenta.CLOSED;
+
     return Slidable(
         key: ValueKey(itemVenta.id),
-        endActionPane: ActionPane(
-          motion: const StretchMotion(), // Animación
-          children: [
-            SlidableAction(
-              onPressed: (context) {
-                _showDialogRemoveItemVenta(context, itemVenta);
-              },
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: 'Eliminar',
-            ),
-            SlidableAction(
-              onPressed: (context) {
-                AppNavigator.pushNamed(
-                  AppRoutes.modificarVenta,
-                  arguments: {'ventaEnEdicion': itemVenta},
-                ).then((valor) {
-                    setState(() {
-                      _listaVentasFuture = VentaProvider.ventaProvider.obtenerListaVentas();
-                    });
-                });
-              },
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              icon: Icons.edit,
-              label: 'Modificar',
-            ),
-          ],
-        ),
+        endActionPane: facturada
+            ? null
+            : ActionPane(
+                motion: const StretchMotion(), // Animación
+                children: [
+                  SlidableAction(
+                    onPressed: (context) {
+                      _showDialogRemoveItemVenta(context, itemVenta);
+                    },
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete,
+                    label: 'Eliminar',
+                  ),
+                  SlidableAction(
+                    onPressed: (context) {
+                      AppNavigator.pushNamed(
+                        AppRoutes.modificarVenta,
+                        arguments: {'ventaEnEdicion': itemVenta},
+                      ).then((valor) {
+                          setState(() {
+                            _listaVentasFuture = VentaProvider.ventaProvider.obtenerListaVentas();
+                          });
+                      });
+                    },
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit,
+                    label: 'Modificar',
+                  ),
+                ],
+              ),
         child: Card(
           child: ListTile(
-            tileColor: Colors.grey[100],
+            tileColor: facturada ? Colors.green[50] : Colors.grey[100],
             leading: CircleAvatar(
               radius: 15,
-              child: const Icon(Icons.insert_chart),
-              backgroundColor: HexColor('#455a64'),
+              child: Icon(facturada ? Icons.lock : Icons.insert_chart),
+              backgroundColor: facturada ? Colors.green[700] : HexColor('#455a64'),
               foregroundColor: Colors.white,
             ),
             title: Column(
@@ -238,6 +247,12 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 const SizedBox(
                   height: 5.0,
                 ),
+                if (facturada)
+                  Text('Facturada',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[800],
+                          fontSize: 11)),
               ],
             ),
             subtitle: Row(
