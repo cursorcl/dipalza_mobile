@@ -1,3 +1,10 @@
+## [2.13.9](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.8...v2.13.9) (2026-10-30)
+
+
+### Bug Fixes
+
+* evita cierre de sesión por carrera de renovación entre isolates ([#53](https://github.com/cursorcl/dipalza_mobile/issues/53)) ([4809b14](https://github.com/cursorcl/dipalza_mobile/commit/4809b1440a811fffb64dda2d22ce81d3c288ebf1))
+
 ## [2.13.8](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.7...v2.13.8) (2026-10-30)
 
 
