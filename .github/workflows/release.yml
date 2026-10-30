@@ -79,6 +79,8 @@ jobs:
       #   self-client con scope MDMOnDemand.MDMDeviceMgmt.CREATE)
       #   MDM_APP_ID / MDM_RELEASE_LABEL_ID (de la app ya creada una vez a
       #   mano en el App Repository de ManageEngine MDM)
+      #   MDM_APP_NAME (nombre de la app tal cual aparece en ese App
+      #   Repository -- la API lo exige al registrar cada versión nueva)
       - name: Publicar nueva versión del apk en ManageEngine MDM
         env:
           MDM_BASE_URL: https://mdm.manageengine.com
@@ -88,6 +90,7 @@ jobs:
           MDM_REFRESH_TOKEN: ${{ secrets.MDM_REFRESH_TOKEN }}
           MDM_APP_ID: ${{ vars.MDM_APP_ID }}
           MDM_RELEASE_LABEL_ID: ${{ vars.MDM_RELEASE_LABEL_ID }}
+          MDM_APP_NAME: ${{ vars.MDM_APP_NAME }}
         run: |
           set -euo pipefail
 
@@ -138,26 +141,21 @@ jobs:
 
           echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
           # La API exige también app_name/bundle_identifier en este PUT, aunque la
-          # app ya exista -- se leen del detalle actual de la app (GET) en vez de
-          # hardcodearlos, para no ir adivinando campo por campo cada vez que la
-          # API agregue un requisito nuevo (ya pasó con app_type/platform_type).
-          # La doc de ManageEngine es inconsistente sobre esta URL (el título de la
-          # sección dice sin "/labels/{id}", los ejemplos lo incluyen) -- la primera
-          # vez con "/labels/{id}" devolvió respuesta vacía (probable 404), por eso
-          # va sin ese segmento y se loguea el status HTTP además del body si falla.
-          APP_DETAILS_RAW=$(curl -sS --write-out '\nHTTP_STATUS:%{http_code}' --request GET \
-            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}" \
-            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}")
-          APP_DETAILS=$(echo "$APP_DETAILS_RAW" | sed '$d')
-          APP_DETAILS_STATUS=$(echo "$APP_DETAILS_RAW" | tail -1)
-          APP_NAME=$(echo "$APP_DETAILS" | jq -r '.app_name // empty' 2>/dev/null || true)
-          BUNDLE_IDENTIFIER=$(echo "$APP_DETAILS" | jq -r '.bundle_identifier // empty' 2>/dev/null || true)
-          if [[ -z "$APP_NAME" || -z "$BUNDLE_IDENTIFIER" ]]; then
-            echo "::error::No se pudo obtener app_name/bundle_identifier de MDM para registrar la nueva versión (${APP_DETAILS_STATUS}). Respuesta: ${APP_DETAILS}"
-            exit 1
+          # app ya exista. Se habían leído en vivo con un GET, pero ese endpoint
+          # (/api/v1/mdm/apps/{app_id}) requiere el scope OAuth
+          # MDMOnDemand.MDMDeviceMgmt.READ, que el Self Client actual no tiene
+          # (solo CREATE) -- siempre devuelve 401. En vez de rehacer el Self
+          # Client con más scopes, se usan valores fijos: bundle_identifier es
+          # el package ID de Android (cl.eos.dipalza.movil, no cambia), y
+          # app_name se toma de una variable del repo (MDM_APP_NAME) -- debe
+          # configurarse una vez con el nombre tal cual aparece en el App
+          # Repository de ManageEngine MDM.
+          BUNDLE_IDENTIFIER_JSON='"cl.eos.dipalza.movil"'
+          if [[ -z "${MDM_APP_NAME:-}" ]]; then
+            echo "::warning::MDM_APP_NAME no está configurado -- se omite la publicación en ManageEngine MDM. Configurar esa variable del repo con el nombre de la app tal cual aparece en el App Repository de MDM."
+            exit 0
           fi
-          APP_NAME_JSON=$(jq -n --arg v "$APP_NAME" '$v')
-          BUNDLE_IDENTIFIER_JSON=$(jq -n --arg v "$BUNDLE_IDENTIFIER" '$v')
+          APP_NAME_JSON=$(jq -n --arg v "$MDM_APP_NAME" '$v')
 
           # app_type=2 (Enterprise App) y platform_type=2 (Android) son requeridos
           # por la API aunque la documentación no los marque como obligatorios --
