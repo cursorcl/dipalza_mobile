@@ -323,7 +323,12 @@ class _VentaEncabezadoEdicionPageState
         codigoRuta: _clienteSeleccionado!.ruta,
         codigoCondicionVenta: _condicionSeleccionada!.codigo,
         detalles: ventaParaEditar?.detalles ?? [],
-        estadoVenta: EstadoVenta.OPENED);
+        // Preserva el estado real de la venta que se está editando (nunca
+        // hardcodear OPENED acá): mandar OPENED a ciegas revertía ventas ya
+        // CLOSED/facturadas de vuelta a editable en el server, sin tocar la
+        // factura ya emitida -- una venta nueva sí arranca en OPENED
+        // (ventaParaEditar es null en ese caso).
+        estadoVenta: ventaParaEditar?.estadoVenta ?? EstadoVenta.OPENED);
 
     final VentaModel ventaGuardada =
         await VentaProvider.ventaProvider.saveVentaEncabezado(ventaModel);
