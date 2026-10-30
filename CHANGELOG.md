@@ -1,3 +1,10 @@
+## [2.13.10](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.9...v2.13.10) (2026-10-30)
+
+
+### Bug Fixes
+
+* no revierte a OPENED el estado real al editar el encabezado ([#54](https://github.com/cursorcl/dipalza_mobile/issues/54)) ([5b63b66](https://github.com/cursorcl/dipalza_mobile/commit/5b63b6620c8e91c12c29433c3248e6e483f95605))
+
 ## [2.13.9](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.8...v2.13.9) (2026-10-30)
 
 
