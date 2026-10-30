@@ -1,3 +1,10 @@
+## [2.13.8](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.7...v2.13.8) (2026-10-30)
+
+
+### Bug Fixes
+
+* encola runs de release en vez de correrlos en paralelo ([#55](https://github.com/cursorcl/dipalza_mobile/issues/55)) ([38c8772](https://github.com/cursorcl/dipalza_mobile/commit/38c87724f3080a41283c9cc44b19f3940e3d288f))
+
 ## [2.13.7](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.6...v2.13.7) (2026-10-30)
 
 
