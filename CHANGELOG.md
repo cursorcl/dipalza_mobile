@@ -1,3 +1,10 @@
+## [2.13.7](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.6...v2.13.7) (2026-10-30)
+
+
+### Bug Fixes
+
+* reemplaza el GET de app_name/bundle_identifier por valores fijos ([#56](https://github.com/cursorcl/dipalza_mobile/issues/56)) ([fda6b7a](https://github.com/cursorcl/dipalza_mobile/commit/fda6b7ac6538a1da524602c8ac4c073241c465c3))
+
 ## [2.13.6](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.5...v2.13.6) (2026-10-30)
 
 
