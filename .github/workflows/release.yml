@@ -15,6 +15,15 @@ permissions:
   issues: write
   pull-requests: write
 
+# Si se mergean varios PRs seguidos, cada push a main dispara un run nuevo --
+# sin esto corren en paralelo y semantic-release puede chocar al pushear el
+# commit/tag de versión sobre un main que el otro run ya movió. Con esto, un
+# run nuevo queda encolado (no cancela el que está corriendo) y arranca solo
+# al terminar el anterior.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
