@@ -139,9 +139,26 @@ class ApiClient {
 
   Future<RenovarTokenResultado> renovarToken() async {
     try {
+      final refreshTokenAlEntrar = pref.refreshToken;
+
+      // El refresh token es de un solo uso: el server lo revoca apenas se
+      // usa una vez. La UI y el servicio de ubicación viven en isolates
+      // separados, cada uno con su propia copia en memoria -- si ambos
+      // necesitan renovar casi al mismo tiempo, el segundo en llegar al
+      // server se encuentra el token ya revocado por el primero y recibe
+      // 401, aunque la sesión siga siendo válida. Por eso se relee desde el
+      // almacenamiento persistente (compartido entre isolates) justo antes
+      // de llamar al server: si otro isolate ya renovó en el ínterin, acá
+      // ya se ve el token nuevo, y no hace falta ni llamar al server.
+      await pref.initPrefs();
       final refreshToken = pref.refreshToken;
+
       if (refreshToken.isEmpty) {
         return const RenovarTokenResultado(exitoso: false);
+      }
+
+      if (refreshToken != refreshTokenAlEntrar && pref.access_token.isNotEmpty) {
+        return const RenovarTokenResultado(exitoso: true);
       }
 
       final resp = await dioRefresh
