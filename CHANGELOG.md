@@ -1,3 +1,10 @@
+# [2.14.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.10...v2.14.0) (2026-10-31)
+
+
+### Features
+
+* separa la publicación en MDM del release como workflow independiente ([#57](https://github.com/cursorcl/dipalza_mobile/issues/57)) ([afb788f](https://github.com/cursorcl/dipalza_mobile/commit/afb788f2e4547e6b4ae593ba81f19595ed15f79d))
+
 ## [2.13.10](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.9...v2.13.10) (2026-10-30)
 
 
