@@ -1,0 +1,132 @@
+name: Publicar en MDM
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión (tag de la GitHub Release) a publicar en ManageEngine MDM, ej. v2.13.10'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publicar-mdm:
+    runs-on: ubuntu-latest
+    env:
+      MDM_VERSION: ${{ inputs.version }}
+      MDM_BASE_URL: https://mdm.manageengine.com
+      MDM_ACCOUNTS_URL: https://accounts.zoho.com
+      MDM_CLIENT_ID: ${{ secrets.MDM_CLIENT_ID }}
+      MDM_CLIENT_SECRET: ${{ secrets.MDM_CLIENT_SECRET }}
+      MDM_REFRESH_TOKEN: ${{ secrets.MDM_REFRESH_TOKEN }}
+      MDM_APP_ID: ${{ vars.MDM_APP_ID }}
+      MDM_RELEASE_LABEL_ID: ${{ vars.MDM_RELEASE_LABEL_ID }}
+      MDM_APP_NAME: ${{ vars.MDM_APP_NAME }}
+    steps:
+      - name: Validar formato de la versión
+        run: |
+          if ! [[ "$MDM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+            echo "ERROR: version '$MDM_VERSION' no tiene un formato válido (esperado algo como v2.13.10, opcionalmente con sufijo -algo)" >&2
+            exit 1
+          fi
+          echo "Versión '$MDM_VERSION' tiene formato válido."
+
+      - name: Verificar que la release existe y descargar el apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$MDM_VERSION" \
+            --repo "${{ github.repository }}" \
+            --pattern "dipalza-release-*.apk" \
+            --dir /tmp/mdm-artifact \
+            --clobber
+
+      # Requiere, como secrets/variables del repo (ver runbook en el PR que
+      # introdujo este workflow, o el que lo introdujo originalmente dentro
+      # de release.yml):
+      #   MDM_CLIENT_ID / MDM_CLIENT_SECRET / MDM_REFRESH_TOKEN (OAuth Zoho,
+      #   self-client con scope MDMOnDemand.MDMDeviceMgmt.CREATE)
+      #   MDM_APP_ID / MDM_RELEASE_LABEL_ID (de la app ya creada una vez a
+      #   mano en el App Repository de ManageEngine MDM)
+      #   MDM_APP_NAME (nombre de la app tal cual aparece en ese App
+      #   Repository -- la API lo exige al registrar cada versión nueva)
+      #
+      # A diferencia de cuando esto corría embebido en release.yml, acá una
+      # configuración faltante hace fallar el run (exit 1) en vez de omitir
+      # en silencio -- quien dispara este workflow a mano lo hace
+      # explícitamente para publicar, así que un salto silencioso sería
+      # confuso.
+      - name: Publicar nueva versión del apk en ManageEngine MDM
+        run: |
+          set -euo pipefail
+
+          APK_FILE=$(ls /tmp/mdm-artifact/dipalza-release-*.apk)
+
+          if [[ -z "${MDM_APP_ID:-}" || -z "${MDM_RELEASE_LABEL_ID:-}" ]]; then
+            echo "::error::MDM_APP_ID/MDM_RELEASE_LABEL_ID no están configurados. Ver el runbook para el setup inicial (subir el apk una vez a mano en el App Repository)."
+            exit 1
+          fi
+          if [[ -z "${MDM_APP_NAME:-}" ]]; then
+            echo "::error::MDM_APP_NAME no está configurado. Configurar esa variable del repo con el nombre de la app tal cual aparece en el App Repository de MDM."
+            exit 1
+          fi
+
+          VERSION=$(basename "$APK_FILE" | sed -E 's/dipalza-release-(.*)\.apk/\1/')
+          echo "Publicando ${APK_FILE} (versión ${VERSION}) en MDM..."
+
+          TOKEN_RESPONSE=$(curl -sS --request POST "${MDM_ACCOUNTS_URL}/oauth/v2/token" \
+            --data-urlencode "refresh_token=${MDM_REFRESH_TOKEN}" \
+            --data-urlencode "client_id=${MDM_CLIENT_ID}" \
+            --data-urlencode "client_secret=${MDM_CLIENT_SECRET}" \
+            --data-urlencode "grant_type=refresh_token")
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
+          if [[ -z "$ACCESS_TOKEN" || "$ACCESS_TOKEN" == "null" ]]; then
+            # La respuesta de Zoho ante un error NO incluye el refresh_token/client_secret
+            # que mandamos -- es seguro mostrarla completa para diagnosticar.
+            echo "::error::No se pudo obtener el access_token de Zoho. Respuesta: ${TOKEN_RESPONSE}"
+            exit 1
+          fi
+
+          FILE_RESPONSE=$(curl -sS --request POST "${MDM_BASE_URL}/emsapi/files" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "module: MDM_APP_MGMT" \
+            --form "fileName=@${APK_FILE}")
+          # La API responde a veces un objeto ({"fileID": ...}) y a veces un array
+          # ([{"fileID": ...}]) -- se soportan ambas formas sin asumir cuál es.
+          FILE_ID=$(echo "$FILE_RESPONSE" | jq -r '
+            if type == "array" then (.[0].fileID // empty)
+            elif type == "object" then (.fileID // .data.fileID // empty)
+            else empty end' 2>/dev/null || true)
+          if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
+            echo "::error::No se pudo subir el apk a MDM (sin fileID en la respuesta). Respuesta cruda: ${FILE_RESPONSE}"
+            exit 1
+          fi
+
+          echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
+          # La API exige también app_name/bundle_identifier en este PUT, aunque la
+          # app ya exista. bundle_identifier es el package ID de Android
+          # (cl.eos.dipalza.movil, no cambia), y app_name se toma de la variable
+          # del repo MDM_APP_NAME.
+          BUNDLE_IDENTIFIER_JSON='"cl.eos.dipalza.movil"'
+          APP_NAME_JSON=$(jq -n --arg v "$MDM_APP_NAME" '$v')
+
+          # app_type=2 (Enterprise App) y platform_type=2 (Android) son requeridos
+          # por la API aunque la documentación no los marque como obligatorios --
+          # sin ellos responde 400 "parameter app_type used is below the minimum
+          # requirement" (IAM0021).
+          curl -sS --fail-with-body --request PUT \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "content-type: application/json" \
+            --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"app_type\": 2, \"platform_type\": 2, \"app_name\": ${APP_NAME_JSON}, \"bundle_identifier\": ${BUNDLE_IDENTIFIER_JSON}, \"force_update_in_label\": false}"
+
+          echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
+          curl -sS --fail-with-body --request POST \
+            "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}/approve" \
+            --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
+            --header "content-type: application/json" \
+            --data '{"silent_install": true, "retire_old_version": true, "notify_user_via_email": false, "distribute_update": true}'
+
+          echo "Versión ${VERSION} publicada y distribuida en ManageEngine MDM."
