@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.0...v2.14.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* corrige bundle_identifier y tolera versión ya aprobada en publish MDM ([#58](https://github.com/cursorcl/dipalza_mobile/issues/58)) ([6fa8803](https://github.com/cursorcl/dipalza_mobile/commit/6fa880388f91b0391dc3fe9be5a0125d4cd6834f))
+
 # [2.14.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.13.10...v2.14.0) (2026-10-31)
 
 
