@@ -106,10 +106,10 @@ jobs:
 
           echo "Registrando versión ${VERSION} (fileID ${FILE_ID}) en app ${MDM_APP_ID}..."
           # La API exige también app_name/bundle_identifier en este PUT, aunque la
-          # app ya exista. bundle_identifier es el package ID de Android
-          # (cl.eos.dipalza.movil, no cambia), y app_name se toma de la variable
+          # app ya exista. bundle_identifier es el applicationId real de Android
+          # (ver android/app/build.gradle), y app_name se toma de la variable
           # del repo MDM_APP_NAME.
-          BUNDLE_IDENTIFIER_JSON='"cl.eos.dipalza.movil"'
+          BUNDLE_IDENTIFIER_JSON='"cl.eosorio.dipalza.movil"'
           APP_NAME_JSON=$(jq -n --arg v "$MDM_APP_NAME" '$v')
 
           # app_type=2 (Enterprise App) y platform_type=2 (Android) son requeridos
@@ -123,10 +123,22 @@ jobs:
             --data "{\"app_file\": ${FILE_ID}, \"app_version\": \"${VERSION}\", \"app_type\": 2, \"platform_type\": 2, \"app_name\": ${APP_NAME_JSON}, \"bundle_identifier\": ${BUNDLE_IDENTIFIER_JSON}, \"force_update_in_label\": false}"
 
           echo "Aprobando y distribuyendo la nueva versión a los dispositivos/grupos ya asociados..."
-          curl -sS --fail-with-body --request POST \
+          # El PUT de arriba puede dejar la versión ya aprobada (is_approved:true
+          # en su respuesta) -- en ese caso este POST responde 412 con
+          # error_code "APP0029" ("App version already approved"). No es un
+          # error real (el estado deseado ya se cumplió), así que se tolera
+          # puntualmente ese código en vez de usar --fail-with-body.
+          APPROVE_HTTP_CODE=$(curl -sS -o /tmp/mdm-approve-response.json -w '%{http_code}' --request POST \
             "${MDM_BASE_URL}/api/v1/mdm/apps/${MDM_APP_ID}/labels/${MDM_RELEASE_LABEL_ID}/approve" \
             --header "Authorization: Zoho-oauthtoken ${ACCESS_TOKEN}" \
             --header "content-type: application/json" \
-            --data '{"silent_install": true, "retire_old_version": true, "notify_user_via_email": false, "distribute_update": true}'
+            --data '{"silent_install": true, "retire_old_version": true, "notify_user_via_email": false, "distribute_update": true}')
+          APPROVE_BODY=$(cat /tmp/mdm-approve-response.json)
+          if [[ "$APPROVE_HTTP_CODE" == "412" && "$APPROVE_BODY" == *"APP0029"* ]]; then
+            echo "La versión ${VERSION} ya había quedado aprobada al registrarla -- se omite como no-error. Verificar en el panel de MDM que la distribución a dispositivos haya quedado aplicada."
+          elif [[ "$APPROVE_HTTP_CODE" -lt 200 || "$APPROVE_HTTP_CODE" -ge 300 ]]; then
+            echo "::error::No se pudo aprobar/distribuir la versión ${VERSION} (HTTP ${APPROVE_HTTP_CODE}). Respuesta: ${APPROVE_BODY}"
+            exit 1
+          fi
 
-          echo "Versión ${VERSION} publicada y distribuida en ManageEngine MDM."
+          echo "Versión ${VERSION} publicada en ManageEngine MDM."
