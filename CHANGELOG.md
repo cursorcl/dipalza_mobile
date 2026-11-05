@@ -1,3 +1,10 @@
+## [2.14.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.1...v2.14.2) (2026-11-05)
+
+
+### Bug Fixes
+
+* permite scroll en la lista de sugerencias de productos al crear un ítem de venta ([#59](https://github.com/cursorcl/dipalza_mobile/issues/59)) ([f848b07](https://github.com/cursorcl/dipalza_mobile/commit/f848b07427847b804310ed7e870b0da1b51129e7))
+
 ## [2.14.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.0...v2.14.1) (2026-11-01)
 
 
