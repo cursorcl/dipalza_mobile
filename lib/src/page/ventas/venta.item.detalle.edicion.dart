@@ -266,20 +266,26 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                       elevation: 4.0,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxHeight: 220),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: options.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final ProductosModel option = options.elementAt(index);
-                            return InkWell(
-                              onTap: () => onSelected(option),
-                              child: ListTile(
-                                dense: true,
-                                title: Text(option.descripcion),
-                                subtitle: Text('Código: ${option.articulo}'),
-                              ),
-                            );
-                          },
+                        // Corta las notificaciones de scroll: si suben hasta el
+                        // ListView del formulario (keyboardDismissBehavior.onDrag)
+                        // éste quita el foco al arrastrar y la lista se cierra.
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (_) => true,
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            itemCount: options.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final ProductosModel option = options.elementAt(index);
+                              return InkWell(
+                                onTap: () => onSelected(option),
+                                child: ListTile(
+                                  dense: true,
+                                  title: Text(option.descripcion),
+                                  subtitle: Text('Código: ${option.articulo}'),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
