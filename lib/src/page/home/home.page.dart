@@ -14,6 +14,7 @@ import '../../services/update_checker_service.dart';
 import '../../share/app_scaffold_key.dart';
 import '../cliente/clientes.page.dart';
 import '../config/preferences.page.dart';
+import '../meta/meta.page.dart';
 import '../producto/productos.page.dart';
 import '../rutas/rutas.page.dart';
 import '../ventas/listado.de.ventas.page.dart';
@@ -40,6 +41,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     const UltimasVentasClientePage(),
     const ProductosPage(),
     const ClientesPage(),
+    const MetaPage(),
     const ConfiguracionPage(showMenuIcon: true),
   ];
 
@@ -157,12 +159,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   selected: _currentIndex == 4,
                   onTap: () => _navegar(4),
                 ),
+                ListTile(
+                  leading: const Icon(Icons.flag),
+                  title: const Text('Meta'),
+                  selected: _currentIndex == 5,
+                  onTap: () => _navegar(5),
+                ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.settings),
                   title: const Text('Configuración'),
-                  selected: _currentIndex == 5,
-                  onTap: () => _navegar(5),
+                  selected: _currentIndex == 6,
+                  onTap: () => _navegar(6),
                 ),
                 if (!_permisoUbicacionSiempreOk)
                   ListTile(
