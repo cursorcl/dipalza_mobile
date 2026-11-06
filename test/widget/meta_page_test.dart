@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:dipalza_movil/src/model/tablero_meta_model.dart';
 import 'package:dipalza_movil/src/page/meta/gauge_meta.dart';
+import 'package:dipalza_movil/src/page/meta/graficos_meta.dart';
 import 'package:dipalza_movil/src/page/meta/meta.page.dart';
 import 'package:dipalza_movil/src/provider/meta_provider.dart';
 import 'package:flutter/material.dart';
@@ -40,8 +43,8 @@ void main() {
   }
 
   testWidgets('metaPage_conMeta_muestraCifrasYGauge', (tester) async {
-    when(() => provider.obtenerMiMeta()).thenAnswer((_) async =>
-        _tablero(meta: 2000000, vendido: 1234567, avance: 61.7));
+    when(() => provider.obtenerMiMeta()).thenAnswer(
+        (_) async => _tablero(meta: 2000000, vendido: 1234567, avance: 61.7));
     await montar(tester);
     expect(find.text('\$1.234.567'), findsOneWidget);
     expect(find.text('\$2.000.000'), findsOneWidget);
@@ -71,17 +74,18 @@ void main() {
   });
 
   testWidgets('metaPage_sinVendedor_muestraMensaje', (tester) async {
-    when(() => provider.obtenerMiMeta()).thenThrow(const MetaSinVendedorException(
-        'El usuario no tiene un vendedor asociado.'));
+    when(() => provider.obtenerMiMeta()).thenThrow(
+        const MetaSinVendedorException(
+            'El usuario no tiene un vendedor asociado.'));
     await montar(tester);
-    expect(find.text('El usuario no tiene un vendedor asociado.'),
-        findsOneWidget);
+    expect(
+        find.text('El usuario no tiene un vendedor asociado.'), findsOneWidget);
     expect(find.text('Reintentar'), findsNothing);
   });
 
   testWidgets('metaPage_error_reintenta', (tester) async {
-    when(() => provider.obtenerMiMeta()).thenThrow(DioException(
-        requestOptions: RequestOptions(path: '/api/metas/mia')));
+    when(() => provider.obtenerMiMeta()).thenThrow(
+        DioException(requestOptions: RequestOptions(path: '/api/metas/mia')));
     await montar(tester);
     expect(find.text('No se pudo cargar tu meta.'), findsOneWidget);
     await tester.tap(find.text('Reintentar'));
@@ -90,9 +94,47 @@ void main() {
   });
 
   testWidgets('metaPage_muestraNota', (tester) async {
-    when(() => provider.obtenerMiMeta()).thenAnswer((_) async =>
-        _tablero(meta: 1000, vendido: 500, avance: 50));
+    when(() => provider.obtenerMiMeta()).thenAnswer(
+        (_) async => _tablero(meta: 1000, vendido: 500, avance: 50));
     await montar(tester);
     expect(find.text(_nota), findsOneWidget);
+  });
+
+  testWidgets('metaPage_muestraAmbosGraficos', (tester) async {
+    when(() => provider.obtenerMiMeta()).thenAnswer(
+        (_) async => _tablero(meta: 1000, vendido: 500, avance: 50));
+    await montar(tester);
+    expect(find.byType(GraficoDiarioMeta), findsOneWidget);
+    expect(find.byType(GraficoMensualMeta), findsOneWidget);
+    expect(find.text('Ventas del mes'), findsOneWidget);
+    expect(find.text('Últimos 12 meses'), findsOneWidget);
+  });
+
+  testWidgets('metaPage_pullToRefresh_conservaDatosMientrasRecarga',
+      (tester) async {
+    var llamadas = 0;
+    final completer = Completer<TableroMetaModel>();
+    when(() => provider.obtenerMiMeta()).thenAnswer((_) {
+      llamadas++;
+      if (llamadas == 1) {
+        return Future.value(
+            _tablero(meta: 2000000, vendido: 1234567, avance: 61.7));
+      }
+      return completer.future;
+    });
+    await montar(tester);
+    expect(find.text('\$1.234.567'), findsOneWidget);
+
+    await tester.drag(find.text('Noviembre 2026'), const Offset(0, 1500));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(llamadas, 2);
+    expect(find.text('\$1.234.567'), findsOneWidget);
+    expect(find.byType(ListView), findsOneWidget);
+
+    completer.complete(_tablero(meta: 2000000, vendido: 1500000, avance: 75));
+    await tester.pumpAndSettle();
+    expect(find.text('\$1.500.000'), findsOneWidget);
   });
 }

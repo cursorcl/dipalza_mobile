@@ -7,6 +7,7 @@ import '../../share/app_scaffold_key.dart';
 import '../../utils/utils.dart';
 import 'formato_meta.dart';
 import 'gauge_meta.dart';
+import 'graficos_meta.dart';
 
 const _notaMeta =
     'Se cuentan las ventas transferidas, sin flete, según su fecha de facturación.';
@@ -23,6 +24,8 @@ class MetaPage extends StatefulWidget {
 class _MetaPageState extends State<MetaPage> {
   late final MetaProvider _provider;
   late Future<TableroMetaModel> _tableroFuture;
+  // Último tablero cargado: se sigue mostrando mientras se recarga.
+  TableroMetaModel? _ultimo;
 
   @override
   void initState() {
@@ -31,7 +34,11 @@ class _MetaPageState extends State<MetaPage> {
     _tableroFuture = _obtener();
   }
 
-  Future<TableroMetaModel> _obtener() async => _provider.obtenerMiMeta();
+  Future<TableroMetaModel> _obtener() async {
+    final tablero = await _provider.obtenerMiMeta();
+    _ultimo = tablero;
+    return tablero;
+  }
 
   Future<void> _recargar() {
     final futuro = _obtener();
@@ -62,7 +69,9 @@ class _MetaPageState extends State<MetaPage> {
 
   Widget _construir(
       BuildContext context, AsyncSnapshot<TableroMetaModel> snapshot) {
+    final previo = _ultimo;
     if (snapshot.connectionState == ConnectionState.waiting) {
+      if (previo != null) return _conRefresco(previo);
       return const Center(child: CircularProgressIndicator());
     }
     final error = snapshot.error;
@@ -72,9 +81,13 @@ class _MetaPageState extends State<MetaPage> {
     if (error != null) {
       return _mensajeCentrado('No se pudo cargar tu meta.', reintentar: true);
     }
+    return _conRefresco(snapshot.data!);
+  }
+
+  Widget _conRefresco(TableroMetaModel t) {
     return RefreshIndicator(
       onRefresh: _recargar,
-      child: _contenido(snapshot.data!),
+      child: _contenido(t),
     );
   }
 
@@ -106,7 +119,8 @@ class _MetaPageState extends State<MetaPage> {
       children: [
         if (t.tieneMeta)
           GaugeMeta(
-              fraccion: fraccionGauge(t.avance), texto: formatearAvance(t.avance))
+              fraccion: fraccionGauge(t.avance),
+              texto: formatearAvance(t.avance))
         else
           const Center(
             child: Text('Sin meta asignada este mes',
@@ -116,11 +130,25 @@ class _MetaPageState extends State<MetaPage> {
         _detalleMes(t),
         const SizedBox(height: 16),
         _cifras(t),
+        const SizedBox(height: 24),
+        _tituloGrafico('Ventas del mes'),
+        GraficoDiarioMeta(tablero: t),
+        const SizedBox(height: 24),
+        _tituloGrafico('Últimos 12 meses'),
+        GraficoMensualMeta(tablero: t),
         const SizedBox(height: 16),
         const Text(_notaMeta,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey, fontSize: 12)),
       ],
+    );
+  }
+
+  Widget _tituloGrafico(String titulo) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(titulo,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
     );
   }
 
