@@ -34,7 +34,7 @@ List<BarChartGroupData> gruposDiarios(TableroMetaModel t) {
 }
 
 /// Meta diaria promedio (meta / días del mes), solo para presentación en la
-/// línea horizontal del gráfico. Es la única división de la app; el avance
+/// línea horizontal del gráfico. la única división sobre montos en la app (solo presentación); el avance
 /// siempre lo calcula el server.
 double? metaDiariaPromedio(TableroMetaModel t) {
   if (!t.tieneMeta || t.diario.isEmpty) return null;
@@ -128,7 +128,8 @@ class GraficoDiarioMeta extends StatelessWidget {
         titlesData: _titulos((v) => v.toInt() % 5 == 0 || v == 1
             ? Text('${v.toInt()}', style: const TextStyle(fontSize: 10))
             : const SizedBox.shrink()),
-        barTouchData: _toque((grupo, rod, valor) => formatearMonto(valor)),
+        barTouchData: _toque((grupo, rod, valor) =>
+            'Día ${tablero.diario[grupo].fecha.day}: ${formatearMonto(valor)}'),
         extraLinesData: ExtraLinesData(horizontalLines: [
           if (metaDia != null)
             HorizontalLine(

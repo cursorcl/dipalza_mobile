@@ -62,6 +62,8 @@ void main() {
     await montar(tester);
     expect(find.text('Sin meta asignada este mes'), findsOneWidget);
     expect(find.byType(GaugeMeta), findsNothing);
+    expect(find.byType(GraficoDiarioMeta), findsOneWidget);
+    expect(find.byType(GraficoMensualMeta), findsOneWidget);
   });
 
   testWidgets('metaPage_metaSuperada_muestraCumplida', (tester) async {
@@ -136,5 +138,21 @@ void main() {
     completer.complete(_tablero(meta: 2000000, vendido: 1500000, avance: 75));
     await tester.pumpAndSettle();
     expect(find.text('\$1.500.000'), findsOneWidget);
+  });
+
+  testWidgets('metaPage_avance100PeroFalta_gaugeNoVerde', (tester) async {
+    // avance 100,0 redondeado por el server, pero vendido < meta: no cumplida.
+    when(() => provider.obtenerMiMeta()).thenAnswer(
+        (_) async => _tablero(meta: 1000, vendido: 999, avance: 100));
+    await montar(tester);
+    expect(find.text('¡Meta cumplida!'), findsNothing);
+    final pintura = tester
+        .widget<CustomPaint>(find
+            .descendant(
+                of: find.byType(GaugeMeta),
+                matching: find.byType(CustomPaint))
+            .first)
+        .painter as dynamic;
+    expect(pintura.colorAvance, isNot(Colors.green));
   });
 }

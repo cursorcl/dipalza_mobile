@@ -7,7 +7,15 @@ class GaugeMeta extends StatelessWidget {
   final double fraccion;
   final String texto;
 
-  const GaugeMeta({super.key, required this.fraccion, required this.texto});
+  /// Meta cumplida (vendido >= meta): pinta el arco en verde.
+  final bool cumplida;
+
+  const GaugeMeta({
+    super.key,
+    required this.fraccion,
+    required this.texto,
+    required this.cumplida,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +25,7 @@ class GaugeMeta extends StatelessWidget {
         painter: _GaugePainter(
           fraccion: fraccion.clamp(0.0, 1.0).toDouble(),
           colorFondo: Colors.grey.shade300,
-          colorAvance: fraccion >= 1 ? Colors.green : Colors.red,
+          colorAvance: cumplida ? Colors.green : Colors.red,
         ),
         child: Align(
           alignment: const Alignment(0, 0.6),

@@ -51,6 +51,22 @@ void main() {
     );
   });
 
+  test('metaProvider_404_mensajeVacio_usaRespaldo', () async {
+    when(() => dio.get('/api/metas/mia')).thenThrow(DioException(
+      requestOptions: _ruta,
+      response: Response(
+        requestOptions: _ruta,
+        statusCode: 404,
+        data: {'message': ''},
+      ),
+    ));
+    expect(
+      provider.obtenerMiMeta(),
+      throwsA(isA<MetaSinVendedorException>().having((e) => e.mensaje,
+          'mensaje', 'El usuario no tiene un vendedor asociado.')),
+    );
+  });
+
   test('metaProvider_500_relanzaDioException', () async {
     when(() => dio.get('/api/metas/mia')).thenThrow(DioException(
       requestOptions: _ruta,

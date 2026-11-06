@@ -120,7 +120,8 @@ class _MetaPageState extends State<MetaPage> {
         if (t.tieneMeta)
           GaugeMeta(
               fraccion: fraccionGauge(t.avance),
-              texto: formatearAvance(t.avance))
+              texto: formatearAvance(t.avance),
+              cumplida: metaCumplida(t))
         else
           const Center(
             child: Text('Sin meta asignada este mes',

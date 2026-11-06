@@ -13,6 +13,8 @@ class MetaSinVendedorException implements Exception {
   String toString() => mensaje;
 }
 
+const _mensajeSinVendedor = 'El usuario no tiene un vendedor asociado.';
+
 class MetaProvider {
   static final MetaProvider metaProvider = MetaProvider();
 
@@ -29,10 +31,9 @@ class MetaProvider {
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         final data = e.response?.data;
-        final mensaje = data is Map && data['message'] is String
-            ? data['message'] as String
-            : 'El usuario no tiene un vendedor asociado.';
-        throw MetaSinVendedorException(mensaje);
+        final mensaje = data is Map && data['message'] is String ? data['message'] as String : '';
+        throw MetaSinVendedorException(
+            mensaje.trim().isEmpty ? _mensajeSinVendedor : mensaje);
       }
       rethrow;
     }
