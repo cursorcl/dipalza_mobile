@@ -60,7 +60,16 @@ void main() {
     expect(grupos[0].barRods.length, 1);
     expect(grupos[1].barRods.length, 1);
     expect(grupos[2].barRods.length, 2);
-    expect(grupos[2].barRods.last.toY, 50);
+    expect(grupos[2].barRods.first.toY, 50);
+    expect(grupos[2].barRods.last.toY, 10);
+  });
+
+  test('etiquetaBarraMensual_metaPrimeroYVentaDespues', () {
+    const conMeta = VendidoMesModel(periodo: '2026-11', vendido: 10, meta: 50);
+    const sinMeta = VendidoMesModel(periodo: '2026-10', vendido: 10);
+    expect(etiquetaBarraMensual(conMeta, 0), 'Meta');
+    expect(etiquetaBarraMensual(conMeta, 1), 'Vendido');
+    expect(etiquetaBarraMensual(sinMeta, 0), 'Vendido');
   });
 
   test('etiquetaMes_diciembre', () {

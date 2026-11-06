@@ -55,6 +55,14 @@ double maxYDiario(TableroMetaModel t) {
 /// 12 grupos (uno por mes). Si la meta del mes es > 0, el grupo agrega una
 /// segunda barra gris con la meta junto a la del vendido; el mes en curso (el
 /// último) se resalta.
+/// Etiqueta del tooltip de la barra [rod] del mes: con meta, la barra 0 es la
+/// meta y la 1 lo vendido; sin meta, la única barra es lo vendido.
+String etiquetaBarraMensual(VendidoMesModel m, int rod) =>
+    tieneMetaMes(m) && rod == 0 ? 'Meta' : 'Vendido';
+
+/// El mes tiene meta para dibujar (> 0).
+bool tieneMetaMes(VendidoMesModel m) => (m.meta ?? 0) > 0;
+
 List<BarChartGroupData> gruposMensuales(TableroMetaModel t) {
   final ultimo = t.mensual.length - 1;
   return [
@@ -62,20 +70,22 @@ List<BarChartGroupData> gruposMensuales(TableroMetaModel t) {
       BarChartGroupData(
         x: i,
         barsSpace: 2,
+        // Dos barras por mes, lado a lado: primero la meta (solo si hay)
+        // y después lo vendido.
         barRods: [
-          BarChartRodData(
-            toY: t.mensual[i].vendido,
-            width: 8,
-            color: i == ultimo ? colorRojoBase() : Colors.red.shade200,
-            borderRadius: BorderRadius.circular(2),
-          ),
-          if ((t.mensual[i].meta ?? 0) > 0)
+          if (tieneMetaMes(t.mensual[i]))
             BarChartRodData(
               toY: t.mensual[i].meta!,
-              width: 4,
+              width: 7,
               color: Colors.grey.shade400,
               borderRadius: BorderRadius.circular(2),
             ),
+          BarChartRodData(
+            toY: t.mensual[i].vendido,
+            width: 7,
+            color: i == ultimo ? colorRojoBase() : Colors.red.shade200,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ],
       ),
   ];
@@ -171,7 +181,7 @@ class GraficoMensualMeta extends StatelessWidget {
                       : FontWeight.normal));
         }),
         barTouchData: _toque((grupo, rod, valor) =>
-            '${rod == 0 ? 'Vendido' : 'Meta'}: ${formatearMonto(valor)}'),
+            '${etiquetaBarraMensual(meses[grupo], rod)}: ${formatearMonto(valor)}'),
       )),
     );
   }
