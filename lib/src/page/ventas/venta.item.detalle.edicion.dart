@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
+import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:dipalza_movil/src/utils/alert_util.dart';
@@ -818,7 +819,8 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       AppNavigator.pop(ventaModel);
     } catch (e, s) {
       if (!mounted) return;
-      showAlertDialog(context, s.toString(), Icons.error);
+      showAlertDialog(context,
+          e is VentaRechazadaException ? e.mensaje : s.toString(), Icons.error);
     }
   }
 

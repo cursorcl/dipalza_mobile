@@ -1,6 +1,7 @@
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/page/ventas/venta.item.detelle.view.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
+import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/alert_util.dart' as alertUtil;
 import 'package:dipalza_movil/src/utils/utils.dart';
@@ -319,7 +320,17 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
                   const Text('Eliminar', style: TextStyle(color: Colors.red)),
               onPressed: () async {
                 Navigator.of(ctx).pop();
-                await VentaProvider.ventaProvider.removeItemVenta(item.id);
+                try {
+                  await VentaProvider.ventaProvider.removeItemVenta(item.id);
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(e is VentaRechazadaException
+                        ? e.mensaje
+                        : 'No se pudo eliminar el ítem: $e'),
+                    backgroundColor: Colors.red,
+                  ));
+                }
                 _cargarDetalles();
               },
             ),

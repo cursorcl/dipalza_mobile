@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/model/venta_detalle_model.dart';
 import 'package:dipalza_movil/src/model/venta_model.dart';
+import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/estado.venta.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 
@@ -31,6 +32,8 @@ class VentaProvider {
       return VentaModel.fromMap(response.data);
     } on DioException catch (e) {
       developer.log("No se ha grabado la venta ${ventaModel}");
+      final rechazo = VentaRechazadaException.desde(e);
+      if (rechazo != null) throw rechazo;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -51,6 +54,8 @@ class VentaProvider {
       return VentaModel.fromMap(response.data);
     } on DioException catch (e) {
       developer.log("No se ha grabado la venta ${ventaModel}");
+      final rechazo = VentaRechazadaException.desde(e);
+      if (rechazo != null) throw rechazo;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -71,6 +76,8 @@ class VentaProvider {
       return VentaModel.fromMap(response.data);
     } on DioException catch (e) {
       developer.log("No se ha grabado el detalle de venta ${registro}");
+      final rechazo = VentaRechazadaException.desde(e);
+      if (rechazo != null) throw rechazo;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -101,6 +108,8 @@ class VentaProvider {
       return;
     } on DioException catch (e) {
       developer.log("No se ha eliminado el item de venta ${itemVentaId}");
+      final rechazo = VentaRechazadaException.desde(e);
+      if (rechazo != null) throw rechazo;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
