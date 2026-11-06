@@ -2,6 +2,7 @@ import 'package:dipalza_movil/src/bloc/clientes_bloc.dart';
 import 'package:dipalza_movil/src/bloc/condicion_venta_bloc.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
+import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/services/locator.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/utils.dart'; // Para colorRojoBase() y getFormatRut()
@@ -126,7 +127,9 @@ class _VentaEncabezadoEdicionPageState
                               if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Error al guardar la venta: $e'),
+                                  content: Text(e is VentaRechazadaException
+                                      ? e.mensaje
+                                      : 'Error al guardar la venta: $e'),
                                   backgroundColor: Colors.red,
                                 ),
                               );
