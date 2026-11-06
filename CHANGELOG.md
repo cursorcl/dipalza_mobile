@@ -1,3 +1,10 @@
+# [2.15.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.3...v2.15.0) (2026-11-06)
+
+
+### Features
+
+* vista Meta del vendedor en la app móvil ([#61](https://github.com/cursorcl/dipalza_mobile/issues/61)) ([afdcd2c](https://github.com/cursorcl/dipalza_mobile/commit/afdcd2cbe29c6daf25b4bdf58afe66d14fdb59b1))
+
 ## [2.14.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.2...v2.14.3) (2026-11-06)
 
 
