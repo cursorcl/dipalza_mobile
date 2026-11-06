@@ -41,6 +41,17 @@ double? metaDiariaPromedio(TableroMetaModel t) {
   return t.meta! / t.diario.length;
 }
 
+/// Tope del eje Y del gráfico diario: incluye la barra más alta y la meta
+/// diaria promedio (con 10 % de holgura) para que la línea de meta no quede
+/// fuera del área visible. Si todo es 0 devuelve 1.
+double maxYDiario(TableroMetaModel t) {
+  var maximo = metaDiariaPromedio(t) ?? 0;
+  for (final d in t.diario) {
+    if (d.vendido > maximo) maximo = d.vendido;
+  }
+  return maximo <= 0 ? 1 : maximo * 1.1;
+}
+
 /// 12 grupos (uno por mes). Si la meta del mes es > 0, el grupo agrega una
 /// segunda barra gris con la meta junto a la del vendido; el mes en curso (el
 /// último) se resalta.
@@ -110,6 +121,7 @@ class GraficoDiarioMeta extends StatelessWidget {
       height: 200,
       child: BarChart(BarChartData(
         barGroups: gruposDiarios(tablero),
+        maxY: maxYDiario(tablero),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         alignment: BarChartAlignment.spaceAround,
