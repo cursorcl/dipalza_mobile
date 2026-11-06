@@ -62,8 +62,9 @@ void main() {
     await montar(tester);
     expect(find.text('Sin meta asignada este mes'), findsOneWidget);
     expect(find.byType(GaugeMeta), findsNothing);
+    expect(find.text('Ventas del mes'), findsOneWidget);
+    expect(find.text('Últimos 12 meses'), findsOneWidget);
     expect(find.byType(GraficoDiarioMeta), findsOneWidget);
-    expect(find.byType(GraficoMensualMeta), findsOneWidget);
   });
 
   testWidgets('metaPage_metaSuperada_muestraCumplida', (tester) async {
@@ -102,14 +103,25 @@ void main() {
     expect(find.text(_nota), findsOneWidget);
   });
 
-  testWidgets('metaPage_muestraAmbosGraficos', (tester) async {
+  testWidgets('metaPage_graficosEnTabs', (tester) async {
     when(() => provider.obtenerMiMeta()).thenAnswer(
         (_) async => _tablero(meta: 1000, vendido: 500, avance: 50));
     await montar(tester);
-    expect(find.byType(GraficoDiarioMeta), findsOneWidget);
-    expect(find.byType(GraficoMensualMeta), findsOneWidget);
     expect(find.text('Ventas del mes'), findsOneWidget);
     expect(find.text('Últimos 12 meses'), findsOneWidget);
+    expect(find.byType(GraficoDiarioMeta), findsOneWidget);
+    await tester.tap(find.text('Últimos 12 meses'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GraficoMensualMeta), findsOneWidget);
+  });
+
+  testWidgets('metaPage_graficosConBorde', (tester) async {
+    when(() => provider.obtenerMiMeta()).thenAnswer(
+        (_) async => _tablero(meta: 1000, vendido: 500, avance: 50));
+    await montar(tester);
+    final contenedor =
+        tester.widget<Container>(find.byKey(const Key('contenedor-grafico')));
+    expect((contenedor.decoration as BoxDecoration).border, isNotNull);
   });
 
   testWidgets('metaPage_pullToRefresh_conservaDatosMientrasRecarga',
@@ -149,8 +161,7 @@ void main() {
     final pintura = tester
         .widget<CustomPaint>(find
             .descendant(
-                of: find.byType(GaugeMeta),
-                matching: find.byType(CustomPaint))
+                of: find.byType(GaugeMeta), matching: find.byType(CustomPaint))
             .first)
         .painter as dynamic;
     expect(pintura.colorAvance, isNot(Colors.green));

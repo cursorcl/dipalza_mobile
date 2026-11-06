@@ -132,11 +132,7 @@ class _MetaPageState extends State<MetaPage> {
         const SizedBox(height: 16),
         _cifras(t),
         const SizedBox(height: 24),
-        _tituloGrafico('Ventas del mes'),
-        GraficoDiarioMeta(tablero: t),
-        const SizedBox(height: 24),
-        _tituloGrafico('Últimos 12 meses'),
-        GraficoMensualMeta(tablero: t),
+        _graficosEnTabs(t),
         const SizedBox(height: 16),
         const Text(_notaMeta,
             textAlign: TextAlign.center,
@@ -145,11 +141,44 @@ class _MetaPageState extends State<MetaPage> {
     );
   }
 
-  Widget _tituloGrafico(String titulo) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(titulo,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+  Widget _graficosEnTabs(TableroMetaModel t) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+            labelColor: colorRojoBase(),
+            indicatorColor: colorRojoBase(),
+            unselectedLabelColor: Colors.grey,
+            tabs: const [
+              Tab(text: 'Ventas del mes'),
+              Tab(text: 'Últimos 12 meses'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 300,
+            child: TabBarView(
+              children: [
+                _contenedorGrafico(GraficoDiarioMeta(tablero: t)),
+                _contenedorGrafico(GraficoMensualMeta(tablero: t)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _contenedorGrafico(Widget grafico) {
+    return Container(
+      key: const Key('contenedor-grafico'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: grafico,
     );
   }
 
