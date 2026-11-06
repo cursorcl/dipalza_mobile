@@ -1,3 +1,10 @@
+## [2.14.3](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.2...v2.14.3) (2026-11-06)
+
+
+### Bug Fixes
+
+* muestra el motivo cuando el servidor rechaza una venta (cliente inactivo) ([#60](https://github.com/cursorcl/dipalza_mobile/issues/60)) ([30e3484](https://github.com/cursorcl/dipalza_mobile/commit/30e3484c65e564ad78a54c076f51404679b72061))
+
 ## [2.14.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.1...v2.14.2) (2026-11-05)
 
 
