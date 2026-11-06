@@ -8,9 +8,6 @@ import '../../utils/utils.dart';
 import 'formato_meta.dart';
 import 'graficos_meta.dart';
 
-const _notaMeta =
-    'Se cuentan las ventas transferidas, sin flete, según su fecha de facturación.';
-
 class MetaPage extends StatefulWidget {
   final MetaProvider? provider;
 
@@ -35,7 +32,8 @@ class _MetaPageState extends State<MetaPage> {
 
   Future<TableroMetaModel> _obtener() async {
     final tablero = await _provider.obtenerMiMeta();
-    _ultimo = tablero;
+    // setState para que el título del AppBar (el mes) se actualice.
+    if (mounted) setState(() => _ultimo = tablero);
     return tablero;
   }
 
@@ -57,7 +55,12 @@ class _MetaPageState extends State<MetaPage> {
         ),
         centerTitle: true,
         backgroundColor: colorRojoBase(),
-        title: const Text('Meta', style: TextStyle(color: Colors.white)),
+        // El título es el mes del tablero ("Noviembre 2026"); mientras no
+        // haya datos, "Meta".
+        title: Text(
+          _ultimo != null ? nombreMes(_ultimo!.periodo) : 'Meta',
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: FutureBuilder<TableroMetaModel>(
         future: _tableroFuture,
@@ -116,8 +119,6 @@ class _MetaPageState extends State<MetaPage> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
-        _tituloMes(t),
-        const SizedBox(height: 12),
         _graficosEnTabs(t),
         const SizedBox(height: 24),
         if (!t.tieneMeta)
@@ -131,10 +132,6 @@ class _MetaPageState extends State<MetaPage> {
         _cifras(t),
         const SizedBox(height: 16),
         _detalleMes(t),
-        const SizedBox(height: 16),
-        const Text(_notaMeta,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
       ],
     );
   }
@@ -177,13 +174,6 @@ class _MetaPageState extends State<MetaPage> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: grafico,
-    );
-  }
-
-  Widget _tituloMes(TableroMetaModel t) {
-    return Center(
-      child: Text(nombreMes(t.periodo),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
     );
   }
 

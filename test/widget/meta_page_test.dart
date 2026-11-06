@@ -12,9 +12,6 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockMetaProvider extends Mock implements MetaProvider {}
 
-const _nota =
-    'Se cuentan las ventas transferidas, sin flete, según su fecha de facturación.';
-
 TableroMetaModel _tablero({double? meta, double? avance, double vendido = 0}) =>
     TableroMetaModel(
       periodo: '2026-11',
@@ -98,11 +95,19 @@ void main() {
     verify(() => provider.obtenerMiMeta()).called(2);
   });
 
-  testWidgets('metaPage_muestraNota', (tester) async {
+  testWidgets('metaPage_tituloEsElMesYSinNota', (tester) async {
     when(() => provider.obtenerMiMeta()).thenAnswer(
         (_) async => _tablero(meta: 1000, vendido: 500, avance: 50));
     await montar(tester);
-    expect(find.text(_nota), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byType(AppBar), matching: find.text('Noviembre 2026')),
+        findsOneWidget);
+    expect(
+        find.descendant(of: find.byType(AppBar), matching: find.text('Meta')),
+        findsNothing);
+    expect(find.textContaining('Se cuentan las ventas transferidas'),
+        findsNothing);
   });
 
   testWidgets('metaPage_graficosEnTabs', (tester) async {
@@ -141,7 +146,7 @@ void main() {
     await montar(tester);
     expect(find.text('\$1.234.567'), findsOneWidget);
 
-    await tester.drag(find.text('Noviembre 2026'), const Offset(0, 1500));
+    await tester.drag(find.byType(ListView), const Offset(0, 1500));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
