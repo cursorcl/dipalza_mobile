@@ -24,13 +24,6 @@ void main() {
     expect(formatearAvance(null), 'Sin meta');
   });
 
-  test('fraccionGauge', () {
-    expect(fraccionGauge(125), 1.0);
-    expect(fraccionGauge(null), 0);
-    expect(fraccionGauge(-5), 0);
-    expect(fraccionGauge(50), 0.5);
-  });
-
   test('textoFalta', () {
     expect(textoFalta(_tablero(meta: 1000000, vendido: 400000, avance: 40)),
         '\$600.000');

@@ -13,12 +13,6 @@ String formatearAvance(double? avance) {
   return '${NumberFormat('0.0', 'es_CL').format(avance)} %';
 }
 
-/// Fracción (0 a 1) que llena el gauge. Se satura en 100 %.
-double fraccionGauge(double? avance) {
-  if (avance == null) return 0;
-  return (avance / 100).clamp(0.0, 1.0).toDouble();
-}
-
 /// Monto que falta para la meta, o null si no hay meta o ya se cumplió.
 String? textoFalta(TableroMetaModel t) {
   if (!t.tieneMeta) return null;

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:dipalza_movil/src/model/tablero_meta_model.dart';
-import 'package:dipalza_movil/src/page/meta/gauge_meta.dart';
 import 'package:dipalza_movil/src/page/meta/graficos_meta.dart';
 import 'package:dipalza_movil/src/page/meta/meta.page.dart';
 import 'package:dipalza_movil/src/provider/meta_provider.dart';
@@ -42,7 +41,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('metaPage_conMeta_muestraCifrasYGauge', (tester) async {
+  testWidgets('metaPage_conMeta_muestraCifrasDespuesDeGraficos',
+      (tester) async {
     when(() => provider.obtenerMiMeta()).thenAnswer(
         (_) async => _tablero(meta: 2000000, vendido: 1234567, avance: 61.7));
     await montar(tester);
@@ -50,18 +50,20 @@ void main() {
     expect(find.text('\$2.000.000'), findsOneWidget);
     expect(find.text('61,7 %'), findsWidgets);
     expect(find.text('\$765.433'), findsOneWidget);
-    expect(find.byType(GaugeMeta), findsOneWidget);
+    expect(tester.getTopLeft(find.byType(TabBar)).dy,
+        lessThan(tester.getTopLeft(find.text('\$1.234.567')).dy));
     expect(find.text('Noviembre 2026'), findsOneWidget);
     expect(find.text('4 ventas cerradas'), findsOneWidget);
     expect(find.text('Actualizado a las 15:30'), findsOneWidget);
   });
 
-  testWidgets('metaPage_sinMeta_muestraTextoYSinGauge', (tester) async {
+  testWidgets('metaPage_sinMeta_muestraTextoYGraficos', (tester) async {
     when(() => provider.obtenerMiMeta())
         .thenAnswer((_) async => _tablero(vendido: 1000));
     await montar(tester);
     expect(find.text('Sin meta asignada este mes'), findsOneWidget);
-    expect(find.byType(GaugeMeta), findsNothing);
+    expect(tester.getTopLeft(find.byType(TabBar)).dy,
+        lessThan(tester.getTopLeft(find.text('\$1.000')).dy));
     expect(find.text('Ventas del mes'), findsOneWidget);
     expect(find.text('Últimos 12 meses'), findsOneWidget);
     expect(find.byType(GraficoDiarioMeta), findsOneWidget);
@@ -150,20 +152,5 @@ void main() {
     completer.complete(_tablero(meta: 2000000, vendido: 1500000, avance: 75));
     await tester.pumpAndSettle();
     expect(find.text('\$1.500.000'), findsOneWidget);
-  });
-
-  testWidgets('metaPage_avance100PeroFalta_gaugeNoVerde', (tester) async {
-    // avance 100,0 redondeado por el server, pero vendido < meta: no cumplida.
-    when(() => provider.obtenerMiMeta()).thenAnswer(
-        (_) async => _tablero(meta: 1000, vendido: 999, avance: 100));
-    await montar(tester);
-    expect(find.text('¡Meta cumplida!'), findsNothing);
-    final pintura = tester
-        .widget<CustomPaint>(find
-            .descendant(
-                of: find.byType(GaugeMeta), matching: find.byType(CustomPaint))
-            .first)
-        .painter as dynamic;
-    expect(pintura.colorAvance, isNot(Colors.green));
   });
 }

@@ -6,7 +6,6 @@ import '../../provider/meta_provider.dart';
 import '../../share/app_scaffold_key.dart';
 import '../../utils/utils.dart';
 import 'formato_meta.dart';
-import 'gauge_meta.dart';
 import 'graficos_meta.dart';
 
 const _notaMeta =
@@ -117,22 +116,21 @@ class _MetaPageState extends State<MetaPage> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
-        if (t.tieneMeta)
-          GaugeMeta(
-              fraccion: fraccionGauge(t.avance),
-              texto: formatearAvance(t.avance),
-              cumplida: metaCumplida(t))
-        else
-          const Center(
-            child: Text('Sin meta asignada este mes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
+        _tituloMes(t),
         const SizedBox(height: 12),
-        _detalleMes(t),
-        const SizedBox(height: 16),
-        _cifras(t),
-        const SizedBox(height: 24),
         _graficosEnTabs(t),
+        const SizedBox(height: 24),
+        if (!t.tieneMeta)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Center(
+              child: Text('Sin meta asignada este mes',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        _cifras(t),
+        const SizedBox(height: 16),
+        _detalleMes(t),
         const SizedBox(height: 16),
         const Text(_notaMeta,
             textAlign: TextAlign.center,
@@ -182,12 +180,17 @@ class _MetaPageState extends State<MetaPage> {
     );
   }
 
+  Widget _tituloMes(TableroMetaModel t) {
+    return Center(
+      child: Text(nombreMes(t.periodo),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+    );
+  }
+
   Widget _detalleMes(TableroMetaModel t) {
     final hora = DateFormat('HH:mm').format(t.calculadoEn.toLocal());
     return Column(
       children: [
-        Text(nombreMes(t.periodo),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
         Text('${t.cantidadVentas} ventas cerradas'),
         Text('Actualizado a las $hora',
             style: const TextStyle(color: Colors.grey)),
