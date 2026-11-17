@@ -1,3 +1,10 @@
+## [2.15.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.1...v2.15.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* fija la versión de Flutter del release para que vuelva a generar el APK ([#63](https://github.com/cursorcl/dipalza_mobile/issues/63)) ([5186cd6](https://github.com/cursorcl/dipalza_mobile/commit/5186cd62716d7cb6bf0dcf3fea2247b7f41bffc5))
+
 ## [2.15.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.0...v2.15.1) (2026-11-17)
 
 
