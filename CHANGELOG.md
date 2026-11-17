@@ -1,3 +1,10 @@
+## [2.15.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.0...v2.15.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* el buscador de producto muestra teclado con letras y números ([#62](https://github.com/cursorcl/dipalza_mobile/issues/62)) ([b5da569](https://github.com/cursorcl/dipalza_mobile/commit/b5da569fa2435fcaa8a3b6217e8930e0b09d9587))
+
 # [2.15.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.14.3...v2.15.0) (2026-11-06)
 
 
