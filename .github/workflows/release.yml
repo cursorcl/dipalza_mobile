@@ -54,6 +54,10 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Versión fija: sin ella el runner toma la última stable y un release
+          # nuevo de Flutter puede romper el build (3.50.0 exige Gradle >= 9.3.1
+          # y el proyecto usa 8.14). 3.47.9 es la última con la que liberó OK.
+          flutter-version: 3.47.9
           cache: true
 
       - name: Decode keystore
