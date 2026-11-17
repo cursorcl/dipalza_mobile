@@ -13,6 +13,7 @@ import '../../model/producto_model.dart';
 import '../../model/venta_detalle_model.dart';
 import '../../provider/productos_provider.dart';
 import '../../share/app.navigator.dart';
+import '../../share/teclado.busqueda.producto.dart';
 
 class VentaEdicionItemDetalle extends StatefulWidget {
   final VentaModel? actualVenta;
@@ -240,7 +241,9 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
                   return TextField(
                     controller: _productoController,
                     focusNode: _productoFocusNode,
-                    keyboardType: TextInputType.number,
+                    keyboardType: tecladoBusquedaProducto,
+                    autocorrect: false,
+                    enableSuggestions: false,
                     decoration: InputDecoration(
                       hintText: 'Buscar por Código o Nombre',
                       isDense: true,

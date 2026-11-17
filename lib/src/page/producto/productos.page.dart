@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../share/app.navigator.dart';
 import '../../share/app_scaffold_key.dart';
+import '../../share/teclado.busqueda.producto.dart';
 import '../../widget/connectivity_banner.widget.dart';
 
 class ProductosPage extends StatefulWidget {
@@ -146,6 +147,9 @@ class _ProductosPageState extends State<ProductosPage> {
               leading: const Icon(Icons.search),
               title: new TextField(
                 controller: controller,
+                keyboardType: tecladoBusquedaProducto,
+                autocorrect: false,
+                enableSuggestions: false,
                 decoration: const InputDecoration(
                     hintText: 'Buscar', border: InputBorder.none),
                 onChanged: onSearchTextChanged,
