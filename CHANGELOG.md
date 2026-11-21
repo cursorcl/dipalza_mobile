@@ -1,3 +1,10 @@
+## [2.17.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.17.0...v2.17.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* limpia los avisos del análisis estático ([#73](https://github.com/cursorcl/dipalza_mobile/issues/73)) ([d510d59](https://github.com/cursorcl/dipalza_mobile/commit/d510d590b39a8682df64cd7724fdd295835ce4cf))
+
 # [2.17.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.16.0...v2.17.0) (2026-11-21)
 
 
