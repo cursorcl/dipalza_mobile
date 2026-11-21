@@ -132,7 +132,11 @@ class VentaProvider {
 
       final List<dynamic> data = response.data;
 
-      return data.map((json) => VentaModel.fromMap(json)).toList();
+      // El server no garantiza orden (la consulta no tiene ORDER BY). El id
+      // es autoincremental, así que ordenar por id deja las ventas en el
+      // orden en que el vendedor las fue ingresando: la primera arriba.
+      return data.map((json) => VentaModel.fromMap(json)).toList()
+        ..sort((a, b) => a.id.compareTo(b.id));
     } on DioException catch (e) {
       developer.log(
           "No se ha podido obtener la ventas para el vendedor ${prefs.vendedor} el día ${fechaFacturacion}  ",
