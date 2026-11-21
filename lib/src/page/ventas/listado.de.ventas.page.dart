@@ -409,7 +409,8 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
           children: [
             Text(getFormatRut(venta.rutCliente),
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
-            const SizedBox(width: 8),
+            const Spacer(),
+            // Alineada a la derecha, en la misma columna que el total.
             _widgetEstado(venta.estadoVenta),
           ],
         ),
