@@ -23,9 +23,14 @@ class VentaModel {
       this.totalNeto = 0,
       this.total = 0,
       this.detalles = const [],
-      this.estadoVenta = EstadoVenta.OPENED});
+      this.estadoVenta = EstadoVenta.OPENED,
+      this.fechaHoraLista});
   int id;
   DateTime fecha;
+
+  /// Hora en que la venta pasó a Terminada (hora de Chile, la fija el
+  /// server). Null si nunca se terminó. Solo lectura: no va en toMap().
+  DateTime? fechaHoraLista;
 
   String rutCliente;
   String codigoCliente;
@@ -69,7 +74,10 @@ class VentaModel {
                   (e) => VentaDetalleModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      estadoVenta: estadoVentaFromApi(json["estadoVenta"]));
+      estadoVenta: estadoVentaFromApi(json["estadoVenta"]),
+      fechaHoraLista: json["fechaHoraLista"] == null
+          ? null
+          : DateTime.tryParse(json["fechaHoraLista"]));
 
   Map<String, dynamic> toMap() => {
         "id": id,

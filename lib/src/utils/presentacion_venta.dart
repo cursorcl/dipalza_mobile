@@ -17,16 +17,19 @@ String inicialesCliente(String nombre) {
   return palabras.take(2).map((p) => p[0]).join();
 }
 
-/// Texto de la etiqueta de estado que se muestra en la lista de ventas.
-String etiquetaEstadoVenta(EstadoVenta estado) {
-  switch (estado) {
-    case EstadoVenta.OPENED:
-      return 'Abierta';
-    case EstadoVenta.FINISHED:
-      return 'Terminada';
-    case EstadoVenta.CLOSED:
-      return 'Facturada';
-  }
+/// Hora en formato 24 h, "HH:mm".
+String formatoHoraCorta(DateTime hora) =>
+    '${hora.hour.toString().padLeft(2, '0')}:'
+    '${hora.minute.toString().padLeft(2, '0')}';
+
+/// Lo que va en la cápsula de cada venta en la lista:
+/// - Facturada: 'Facturada' (es el único estado que se marca).
+/// - Si no, la hora en que quedó terminada, p. ej. '13:30'.
+/// - null si no hay hora (venta que nunca se terminó): no se muestra cápsula.
+String? textoCapsulaVenta(VentaModel venta) {
+  if (venta.estadoVenta == EstadoVenta.CLOSED) return 'Facturada';
+  final hora = venta.fechaHoraLista;
+  return hora == null ? null : formatoHoraCorta(hora);
 }
 
 /// Suma de los totales de [ventas], para el resumen sobre la lista.

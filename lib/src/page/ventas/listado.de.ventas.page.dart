@@ -411,7 +411,7 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
             const Spacer(),
             // Alineada a la derecha, en la misma columna que el total.
-            _widgetEstado(venta.estadoVenta),
+            _widgetEstado(venta),
           ],
         ),
         const SizedBox(height: 6),
@@ -436,44 +436,38 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     );
   }
 
-  /// Etiqueta de estado con texto + color (no solo color).
-  Widget _widgetEstado(EstadoVenta estado) {
-    final MaterialColor color;
-    final IconData? icono;
-    switch (estado) {
-      case EstadoVenta.OPENED:
-        color = Colors.orange;
-        icono = null;
-        break;
-      case EstadoVenta.FINISHED:
-        color = Colors.blue;
-        icono = Icons.check;
-        break;
-      case EstadoVenta.CLOSED:
-        color = Colors.green;
-        icono = Icons.lock;
-        break;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.shade200),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icono != null) ...[
+  /// Cápsula de la venta: verde con candado si está facturada (el único
+  /// estado que se marca); si no, azul con la hora en que quedó terminada.
+  /// Sin hora (venta nunca terminada) no se muestra nada.
+  Widget _widgetEstado(VentaModel venta) {
+    final texto = textoCapsulaVenta(venta);
+    if (texto == null) return const SizedBox.shrink();
+    final facturada = venta.estadoVenta == EstadoVenta.CLOSED;
+    final MaterialColor color = facturada ? Colors.green : Colors.blue;
+    final IconData icono = facturada ? Icons.lock : Icons.schedule;
+    return Semantics(
+      label: facturada ? 'Facturada' : 'Terminada a las $texto',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.shade200),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
             Icon(icono, size: 12, color: color.shade900),
             const SizedBox(width: 4),
+            Text(texto,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color.shade900,
+                    fontFeatures: const [FontFeature.tabularFigures()])),
           ],
-          Text(etiquetaEstadoVenta(estado),
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color.shade900)),
-        ],
+        ),
       ),
     );
   }

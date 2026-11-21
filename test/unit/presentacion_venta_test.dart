@@ -39,10 +39,39 @@ void main() {
     });
   });
 
-  test('etiquetaEstadoVenta', () {
-    expect(etiquetaEstadoVenta(EstadoVenta.OPENED), 'Abierta');
-    expect(etiquetaEstadoVenta(EstadoVenta.FINISHED), 'Terminada');
-    expect(etiquetaEstadoVenta(EstadoVenta.CLOSED), 'Facturada');
+  group('textoCapsulaVenta', () {
+    test('facturada muestra Facturada aunque tenga hora', () {
+      final v = _venta(1000)
+        ..estadoVenta = EstadoVenta.CLOSED
+        ..fechaHoraLista = DateTime(2026, 11, 20, 13, 30);
+      expect(textoCapsulaVenta(v), 'Facturada');
+    });
+
+    test('terminada muestra la hora en que quedó lista, en 24 h', () {
+      final v = _venta(1000)
+        ..estadoVenta = EstadoVenta.FINISHED
+        ..fechaHoraLista = DateTime(2026, 11, 20, 9, 5);
+      expect(textoCapsulaVenta(v), '09:05');
+      v.fechaHoraLista = DateTime(2026, 11, 20, 17, 45, 59);
+      expect(textoCapsulaVenta(v), '17:45');
+    });
+
+    test('sin hora (nunca terminada) no muestra cápsula', () {
+      expect(textoCapsulaVenta(_venta(1000)), isNull);
+    });
+  });
+
+  test('fromMap lee fechaHoraLista como hora local y la omite en toMap', () {
+    final base = _venta(1000).toMap()
+      ..remove('detalles')
+      ..['estadoVenta'] = 'FINISHED';
+    final conHora = VentaModel.fromMap(
+        {...base, 'fechaHoraLista': '2026-11-16T13:30:00.424242'});
+    expect(conHora.fechaHoraLista, DateTime(2026, 11, 16, 13, 30, 0, 424, 242));
+    expect(conHora.toMap().containsKey('fechaHoraLista'), isFalse);
+
+    final sinHora = VentaModel.fromMap({...base, 'fechaHoraLista': null});
+    expect(sinHora.fechaHoraLista, isNull);
   });
 
   test('totalDeVentas suma los totales', () {
