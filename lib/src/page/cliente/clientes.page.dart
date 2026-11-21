@@ -15,7 +15,20 @@ import '../../widget/lista.widgets.dart';
 class ClientesPage extends StatefulWidget {
   final bool isForSelection;
 
-  const ClientesPage({Key? key, this.isForSelection = false}) : super(key: key);
+  /// Título de la barra ("Clientes" por defecto).
+  final String titulo;
+
+  /// Si viene, tocar un cliente lo entrega por aquí en vez de cerrar la
+  /// página: así otra pantalla del menú (Últimas Ventas) usa esta lista como
+  /// su primer paso, con ☰ y sin flecha de volver.
+  final ValueChanged<ClientesModel>? onSeleccionado;
+
+  const ClientesPage(
+      {Key? key,
+      this.isForSelection = false,
+      this.titulo = 'Clientes',
+      this.onSeleccionado})
+      : super(key: key);
 
   @override
   _ClientesPageState createState() => _ClientesPageState();
@@ -55,10 +68,10 @@ class _ClientesPageState extends State<ClientesPage> {
         automaticallyImplyLeading: false,
         backgroundColor: colorRojoBase(),
         title: Container(
-          child: const Center(
+          child: Center(
             child: Text(
-              'Clientes',
-              style: TextStyle(color: Colors.white),
+              widget.titulo,
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ),
@@ -218,8 +231,13 @@ class _ClientesPageState extends State<ClientesPage> {
     final estiloSecundario =
         TextStyle(fontSize: 14, color: Colors.grey.shade700);
     return TarjetaLista(
-      // Al elegir cliente para una venta, tocar la tarjeta lo selecciona.
-      onTap: widget.isForSelection ? () => AppNavigator.pop(cliente) : null,
+      // Al elegir cliente (para una venta o para Últimas Ventas), tocar la
+      // tarjeta lo selecciona.
+      onTap: widget.onSeleccionado != null
+          ? () => widget.onSeleccionado!(cliente)
+          : widget.isForSelection
+              ? () => AppNavigator.pop(cliente)
+              : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -251,11 +269,16 @@ class _ClientesPageState extends State<ClientesPage> {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.history, color: Colors.grey.shade700),
-            tooltip: 'Ver última venta',
-            onPressed: () => _verUltimaVenta(cliente),
-          ),
+          // En Últimas Ventas tocar el cliente ya muestra sus ventas: el
+          // botón de historial sobra.
+          if (widget.onSeleccionado == null)
+            IconButton(
+              icon: Icon(Icons.history, color: Colors.grey.shade700),
+              tooltip: 'Ver última venta',
+              onPressed: () => _verUltimaVenta(cliente),
+            )
+          else
+            const SizedBox(width: 12),
         ],
       ),
     );
