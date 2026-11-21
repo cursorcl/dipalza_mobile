@@ -1,3 +1,10 @@
+# [2.18.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.17.1...v2.18.0) (2026-11-21)
+
+
+### Features
+
+* la búsqueda de clientes también encuentra por RUT ([#74](https://github.com/cursorcl/dipalza_mobile/issues/74)) ([7ac2bad](https://github.com/cursorcl/dipalza_mobile/commit/7ac2badd62215a2feedf6a55bdd3cdec6648e68c))
+
 ## [2.17.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.17.0...v2.17.1) (2026-11-21)
 
 
