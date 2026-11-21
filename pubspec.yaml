@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 2.15.2+59
+version: 2.16.0+64
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -75,9 +75,18 @@ flutter_icons:
   image_path: "assets/icons/icono.png"
   adaptive_icon_background: "assets/icons/icono.png"
 
+# Pantalla de arranque nativa: fondo blanco con el logo centrado, igual que la
+# pantalla "Iniciando sistema..." que viene después (antes: fondo azul con el
+# degradado amarillo/café antiguo, que no llenaba la pantalla).
+# Regenerar con: dart run flutter_native_splash:create
 flutter_native_splash:
-  image: assets/icons/launcher_fondo.png
-  color: "42a5f5"
+  color: "ffffff"
+  image: assets/splash/splash_logo.png
+  android_12:
+    # Android 12+ recorta el ícono en un círculo: imagen cuadrada con margen.
+    image: assets/splash/splash_android12.png
+    color: "ffffff"
+    icon_background_color: "ffffff"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

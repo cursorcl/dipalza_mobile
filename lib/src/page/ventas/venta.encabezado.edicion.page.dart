@@ -40,6 +40,13 @@ class _VentaEncabezadoEdicionPageState
   CondicionVentaModel? _condicionSeleccionada;
   late final DateTime _fechaFacturacion;
 
+  /// Al modificar una venta ya creada el cliente queda fijo: solo se
+  /// pueden cambiar la condición de venta y los productos. Se mira la venta
+  /// con la que se abrió la página (no ventaParaEditar, que se reemplaza
+  /// al guardar), así una venta nueva sigue con el cliente editable.
+  bool get _esModificacion =>
+      widget.ventaEnEdicion != null && widget.ventaEnEdicion!.id != -1;
+
   @override
   void initState() {
     super.initState();
@@ -112,7 +119,7 @@ class _VentaEncabezadoEdicionPageState
                       foregroundColor: Colors.white,
                       textStyle: const TextStyle(fontSize: 18),
                     ),
-                    onPressed: (_clienteSeleccionado == null)
+                    onPressed: (!_esModificacion && _clienteSeleccionado == null)
                         ? null // Deshabilita el botón si no hay cliente
                         : () async {
                             try {
@@ -144,6 +151,7 @@ class _VentaEncabezadoEdicionPageState
   }
 
   Widget _buildClienteSelector(BuildContext context) {
+    if (_esModificacion) return _buildClienteFijo();
     return Card(
       elevation: 2.0,
       margin: EdgeInsets.zero,
@@ -234,6 +242,27 @@ class _VentaEncabezadoEdicionPageState
     );
   }
 
+  /// Cliente de una venta en modificación: solo lectura.
+  Widget _buildClienteFijo() {
+    final venta = widget.ventaEnEdicion!;
+    final nombre = _clienteSeleccionado?.razon ??
+        (venta.nombreCliente.isNotEmpty ? venta.nombreCliente : 'Cargando…');
+    return Card(
+      elevation: 2.0,
+      margin: EdgeInsets.zero,
+      color: Colors.grey[200],
+      child: ListTile(
+        leading: Icon(Icons.person, color: colorRojoBase()),
+        title: Text(nombre,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        subtitle: Text(
+            '${getFormatRut(venta.rutCliente)}\nEl cliente no se puede cambiar al modificar una venta'),
+        isThreeLine: true,
+        trailing: const Icon(Icons.lock_outline),
+      ),
+    );
+  }
+
   Widget _buildCondicionVentaModelSelector() {
     return Card(
       elevation: 2.0,
@@ -316,14 +345,24 @@ class _VentaEncabezadoEdicionPageState
   }
 
   Future<VentaModel> saveVenta() async {
+    // En modificación el cliente (y su ruta) se toman de la venta original,
+    // nunca de la selección: así no hay forma de cambiarlo, y tampoco
+    // depende de que la búsqueda del cliente haya respondido.
+    final original = widget.ventaEnEdicion;
+    final rutCliente =
+        _esModificacion ? original!.rutCliente : _clienteSeleccionado!.rut;
+    final codigoCliente =
+        _esModificacion ? original!.codigoCliente : _clienteSeleccionado!.codigo;
+    final codigoRuta =
+        _esModificacion ? original!.codigoRuta : _clienteSeleccionado!.ruta;
     VentaModel ventaModel = VentaModel(
         id: ventaParaEditar?.id ?? -1,
         fecha: _fechaFacturacion,
-        rutCliente: _clienteSeleccionado!.rut,
-        codigoCliente: _clienteSeleccionado!.codigo,
+        rutCliente: rutCliente,
+        codigoCliente: codigoCliente,
         codigoVendedor: pref.vendedor,
         tipoVendedor: pref.tipo,
-        codigoRuta: _clienteSeleccionado!.ruta,
+        codigoRuta: codigoRuta,
         codigoCondicionVenta: _condicionSeleccionada!.codigo,
         detalles: ventaParaEditar?.detalles ?? [],
         // Preserva el estado real de la venta que se está editando (nunca
