@@ -14,7 +14,6 @@ import '../../services/api_client.dart';
 import '../../services/background_location_service.dart';
 import '../../share/app.navigator.dart';
 import '../../share/app_routes.dart';
-import '../../share/app_scaffold_key.dart';
 import '../../share/prefs_usuario.dart';
 import '../../utils/jwt_util.dart';
 import '../../utils/utils.dart';
@@ -501,7 +500,7 @@ class _ConfiguracionPageState extends State<ConfiguracionPage> {
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundColor: _statusColor(context).withOpacity(0.15),
+                backgroundColor: _statusColor(context).withValues(alpha: 0.15),
                 child: Icon(_statusIcon(), color: _statusColor(context)),
               ),
               title: const Text('Dirección del servidor'),

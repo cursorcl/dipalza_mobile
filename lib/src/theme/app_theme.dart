@@ -129,8 +129,8 @@ class AppTheme {
       scaffoldBackgroundColor: Colors.white,
 
       // EFECTOS
-      splashColor: appColors.primary.withOpacity(0.1),
-      highlightColor: appColors.primary.withOpacity(0.05),
+      splashColor: appColors.primary.withValues(alpha: 0.1),
+      highlightColor: appColors.primary.withValues(alpha: 0.05),
 
       // ICONOS
       iconTheme: const IconThemeData(

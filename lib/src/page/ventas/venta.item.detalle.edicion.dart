@@ -590,7 +590,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
     required VoidCallback? onTap,
   }) {
     final Color fondo = !habilitado
-        ? Colors.grey.withOpacity(0.1)
+        ? Colors.grey.withValues(alpha: 0.1)
         : (seleccionado ? colorFondoSeleccionado : colorFondo);
     final Color texto = !habilitado
         ? Colors.grey

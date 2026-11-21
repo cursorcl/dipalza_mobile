@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:dipalza_movil/src/bloc/clientes_bloc.dart';
 import 'package:dipalza_movil/src/bloc/condicion_venta_bloc.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
@@ -95,6 +96,16 @@ class _VentaEncabezadoEdicionPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Barra fina mientras cargan condiciones de venta y, al
+                  // modificar, el cliente de la venta. Alto fijo: el resto
+                  // de la pantalla no se mueve al aparecer o desaparecer.
+                  SizedBox(
+                    height: 4,
+                    child: _estaCargando
+                        ? const LinearProgressIndicator()
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     'Fecha de Facturación',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -310,7 +321,7 @@ class _VentaEncabezadoEdicionPageState
         }
       }
     } catch (e) {
-      print('Error al cargar datos iniciales: $e');
+      developer.log('Error al cargar datos iniciales', name: 'VentaEncabezadoEdicion', error: e);
       // (Aquí deberías mostrar un snackbar o alerta de error)
     }
 
@@ -338,7 +349,7 @@ class _VentaEncabezadoEdicionPageState
         _estaCargando = false;
       });
     } catch (e) {
-      print('Error al cargar datos para edición: $e');
+      developer.log('Error al cargar datos para edición', name: 'VentaEncabezadoEdicion', error: e);
       if (!mounted) return;
       setState(() => _estaCargando = false);
     }

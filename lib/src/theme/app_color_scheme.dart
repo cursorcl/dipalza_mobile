@@ -121,14 +121,14 @@ class AppColorScheme {
   }
 
   // VARIANTES ÚTILES
-  Color get iconHomeLight => iconHome.withOpacity(0.1);
-  Color get iconHomeDark => iconHome.withOpacity(0.8);
+  Color get iconHomeLight => iconHome.withValues(alpha: 0.1);
+  Color get iconHomeDark => iconHome.withValues(alpha: 0.8);
 
-  Color get rojoBaseLight => rojoBase.withOpacity(0.1);
-  Color get rojoBaseDark => rojoBase.withOpacity(0.8);
+  Color get rojoBaseLight => rojoBase.withValues(alpha: 0.1);
+  Color get rojoBaseDark => rojoBase.withValues(alpha: 0.8);
 
-  Color get verdeBaseLight => verdeBase.withOpacity(0.1);
-  Color get verdeBaseDark => verdeBase.withOpacity(0.8);
+  Color get verdeBaseLight => verdeBase.withValues(alpha: 0.1);
+  Color get verdeBaseDark => verdeBase.withValues(alpha: 0.8);
 
   // COLORES PREDEFINIDOS ÚTILES
   static const Color naranjaCorporativo = Color(0xFFFF9F00);

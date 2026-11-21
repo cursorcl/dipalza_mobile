@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:dipalza_movil/src/model/login.model.dart';
 import 'package:dipalza_movil/src/model/respuesta_model.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
-import 'package:dipalza_movil/src/utils/utils.dart';
 
 class VenderdorProvider {
   final _dio = Dio(BaseOptions(
