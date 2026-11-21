@@ -3,6 +3,7 @@ import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/estado.venta.dart';
 import 'package:dipalza_movil/src/utils/filtro_ventas.dart';
+import 'package:dipalza_movil/src/utils/presentacion_venta.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -60,6 +61,26 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     });
   }
 
+  Future<void> _abrirNuevaVenta() async {
+    await AppNavigator.pushNamed(AppRoutes.nuevaVenta);
+    _cargarVentas();
+  }
+
+  void _verDetalle(VentaModel venta) {
+    AppNavigator.pushNamed(AppRoutes.ventaDetalle,
+        arguments: {'ventaModel': venta, 'esEdicion': false});
+  }
+
+  void _modificarVenta(VentaModel venta) {
+    AppNavigator.pushNamed(
+      AppRoutes.modificarVenta,
+      arguments: {'ventaEnEdicion': venta},
+    ).then((_) {
+      if (!mounted) return;
+      _cargarVentas();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,12 +106,7 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             child: TextButton.icon(
-              onPressed: () async {
-                await AppNavigator.pushNamed(
-                  AppRoutes.nuevaVenta,
-                );
-                _cargarVentas();
-              },
+              onPressed: _abrirNuevaVenta,
               icon: const Icon(Icons.add, size: 20),
               label: const Text("Nueva Venta"),
               style: TextButton.styleFrom(
@@ -158,16 +174,7 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                   children: <Widget>[
                     const ConnectivityBanner(),
                     if (_verBuscar) _widgetInputBuscar(),
-                    Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: _refrescarVentas,
-                          child: ListView(
-                              // Permite el gesto aunque las ventas no
-                              // alcancen a llenar la pantalla.
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              children: _widgetListOfItemVenta(
-                                  context, snapshot.data!)),
-                        )),
+                    ..._widgetCuerpoLista(snapshot.data!),
                   ],
                 ))
           ]);
@@ -178,22 +185,68 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     );
   }
 
-  List<Widget> _widgetListOfItemVenta(BuildContext context, List<VentaModel> listaVenta) {
-    final List<Widget> _listItem = [];
-    if (listaVenta.length == 0) {
-      _listItem.add(_widgetEmptyItem());
-      return _listItem;
-    }
-    final filtradas = filtrarVentas(listaVenta, _buscarController.text);
-    if (filtradas.isEmpty) {
-      _listItem.add(_widgetSinResultados());
+  /// Resumen fijo + lista con deslizar para refrescar. Siempre scrollea
+  /// (AlwaysScrollableScrollPhysics) para que el gesto funcione aunque haya
+  /// pocas ventas o ninguna.
+  List<Widget> _widgetCuerpoLista(List<VentaModel> ventas) {
+    final filtradas = filtrarVentas(ventas, _buscarController.text);
+    final Widget lista;
+    if (ventas.isEmpty) {
+      lista = ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [_widgetSinVentas()],
+      );
+    } else if (filtradas.isEmpty) {
+      lista = ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [_widgetSinResultados()],
+      );
     } else {
-      filtradas.forEach((itemVenta) {
-        _listItem..add(_widgetItemOfVenta(itemVenta));
-      });
+      lista = ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(top: 4, bottom: 16),
+        itemCount: filtradas.length,
+        itemBuilder: (context, i) => _widgetItemOfVenta(filtradas[i]),
+      );
     }
+    return [
+      if (ventas.isNotEmpty) _widgetResumen(ventas.length, filtradas),
+      Expanded(
+        child: RefreshIndicator(onRefresh: _refrescarVentas, child: lista),
+      ),
+    ];
+  }
 
-    return _listItem;
+  /// "20 ventas · Total $2.123.456"; con búsqueda activa, "3 de 20 ventas"
+  /// y el total de las que se ven.
+  Widget _widgetResumen(int cantidadTotal, List<VentaModel> filtradas) {
+    final cantidad = filtradas.length == cantidadTotal
+        ? '$cantidadTotal ${cantidadTotal == 1 ? 'venta' : 'ventas'}'
+        : '${filtradas.length} de $cantidadTotal ventas';
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Text(cantidad,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade800)),
+          const Spacer(),
+          Text('Total ',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+          Text(getValorModena(totalDeVentas(filtradas), 0),
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFeatures: [FontFeature.tabularFigures()])),
+        ],
+      ),
+    );
   }
 
   Widget _widgetInputBuscar() {
@@ -223,36 +276,47 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   }
 
   Widget _widgetSinResultados() {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.search_off),
-        title: Text(
-            'No hay ventas que coincidan con "${_buscarController.text.trim()}"',
-            style: const TextStyle(fontSize: 13.0)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+      child: Column(
+        children: [
+          Icon(Icons.search_off, size: 56, color: Colors.grey.shade400),
+          const SizedBox(height: 12),
+          Text('No hay ventas que coincidan con "${_buscarController.text.trim()}"',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade800)),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => setState(() => _buscarController.clear()),
+            child: const Text('Limpiar búsqueda'),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _widgetEmptyItem() {
-    return const Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 20,
-          child: Icon(Icons.insert_chart),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('No hay ventas!!',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.0,
-                )),
-          ],
-        ),
+  Widget _widgetSinVentas() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
+      child: Column(
+        children: [
+          Icon(Icons.receipt_long_outlined,
+              size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          const Text('Aún no hay ventas',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Las ventas que ingreses aparecerán aquí.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: _abrirNuevaVenta,
+            icon: const Icon(Icons.add),
+            label: const Text('Nueva venta'),
+            style: FilledButton.styleFrom(backgroundColor: colorRojoBase()),
+          ),
+        ],
       ),
     );
   }
@@ -281,16 +345,7 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                     label: 'Eliminar',
                   ),
                   SlidableAction(
-                    onPressed: (context) {
-                      AppNavigator.pushNamed(
-                        AppRoutes.modificarVenta,
-                        arguments: {'ventaEnEdicion': itemVenta},
-                      ).then((valor) {
-                          setState(() {
-                            _listaVentasFuture = VentaProvider.ventaProvider.obtenerListaVentas();
-                          });
-                      });
-                    },
+                    onPressed: (_) => _modificarVenta(itemVenta),
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     icon: Icons.edit,
@@ -299,66 +354,163 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 ],
               ),
         child: Card(
-          child: ListTile(
-            tileColor: facturada ? Colors.green[50] : Colors.grey[100],
-            leading: CircleAvatar(
-              radius: 15,
-              child: Icon(facturada ? Icons.lock : Icons.insert_chart),
-              backgroundColor: facturada ? Colors.green[700] : HexColor('#455a64'),
-              foregroundColor: Colors.white,
+          elevation: 0,
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          color: facturada ? Colors.green.shade50 : Colors.white,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade300),
+          ),
+          child: InkWell(
+            // Toda la tarjeta abre el detalle (antes solo la flecha).
+            onTap: () => _verDetalle(itemVenta),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _widgetIniciales(itemVenta, facturada),
+                  const SizedBox(width: 12),
+                  Expanded(child: _widgetDatosVenta(itemVenta)),
+                  _widgetMenuAcciones(itemVenta, facturada),
+                ],
+              ),
             ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(itemVenta.nombreCliente,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13.0,
-                    )),
-                const SizedBox(
-                  height: 2.0,
-                ),
-                Text(getFormatRut(itemVenta.rutCliente),
-                    style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: Colors.grey[700],
-                        fontSize: 13)),
-                const SizedBox(
-                  height: 5.0,
-                ),
-                if (facturada)
-                  Text('Facturada',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[800],
-                          fontSize: 11)),
-              ],
-            ),
-            subtitle: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(itemVenta.nombreCondicionVenta,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: Colors.grey[700],
-                        fontSize: 10)),
-                Expanded(child: Container()),
-                Text(getValorModena(itemVenta.total, 0),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16))
-              ],
-            ),
-            trailing: IconButton(
-                icon: const Icon(Icons.arrow_forward_ios),
-                onPressed: () {
-                  AppNavigator.pushNamed(AppRoutes.ventaDetalle,
-                      arguments: {'ventaModel': itemVenta, 'esEdicion': false});
-                }),
           ),
         ));
+  }
+
+  Widget _widgetIniciales(VentaModel venta, bool facturada) {
+    return ExcludeSemantics(
+      child: CircleAvatar(
+        radius: 20,
+        backgroundColor:
+            facturada ? Colors.green.shade100 : Colors.red.shade50,
+        child: Text(inicialesCliente(venta.nombreCliente),
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: facturada ? Colors.green.shade800 : Colors.red.shade800)),
+      ),
+    );
+  }
+
+  Widget _widgetDatosVenta(VentaModel venta) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(venta.nombreCliente,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            Text(getFormatRut(venta.rutCliente),
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+            const Spacer(),
+            // Alineada a la derecha, en la misma columna que el total.
+            _widgetEstado(venta),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text(venta.nombreCondicionVenta,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
+            ),
+            const SizedBox(width: 8),
+            Text(getValorModena(venta.total, 0),
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFeatures: [FontFeature.tabularFigures()])),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Cápsula de la venta con la hora en que quedó terminada: verde con
+  /// candado si está facturada (el único estado que se marca), azul con
+  /// reloj si no. Sin hora (venta nunca terminada) no se muestra nada.
+  Widget _widgetEstado(VentaModel venta) {
+    final texto = textoCapsulaVenta(venta);
+    if (texto == null) return const SizedBox.shrink();
+    final facturada = venta.estadoVenta == EstadoVenta.CLOSED;
+    final MaterialColor color = facturada ? Colors.green : Colors.blue;
+    final IconData icono = facturada ? Icons.lock : Icons.schedule;
+    return Semantics(
+      label: !facturada
+          ? 'Terminada a las $texto'
+          : venta.fechaHoraLista == null
+              ? 'Facturada'
+              : 'Facturada, terminada a las $texto',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: color.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.shade200),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icono, size: 12, color: color.shade900),
+            const SizedBox(width: 4),
+            Text(texto,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color.shade900,
+                    fontFeatures: const [FontFeature.tabularFigures()])),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Menú ⋮ con las mismas acciones que el deslizar, para que no dependan
+  /// de un gesto que no se ve. Una venta facturada no tiene acciones.
+  Widget _widgetMenuAcciones(VentaModel venta, bool facturada) {
+    // Mismo ancho que el botón ⋮, para que los totales queden alineados.
+    if (facturada) return const SizedBox(width: 48);
+    return PopupMenuButton<String>(
+      tooltip: 'Acciones de la venta',
+      icon: Icon(Icons.more_vert, color: Colors.grey.shade700),
+      onSelected: (accion) {
+        if (accion == 'modificar') {
+          _modificarVenta(venta);
+        } else if (accion == 'eliminar') {
+          _showDialogRemoveItemVenta(context, venta);
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'modificar',
+          child: ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Modificar'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'eliminar',
+          child: ListTile(
+            leading: Icon(Icons.delete, color: Colors.red.shade700),
+            title: Text('Eliminar',
+                style: TextStyle(color: Colors.red.shade700)),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _showDialogRemoveItemVenta(BuildContext context, VentaModel venta) async {
