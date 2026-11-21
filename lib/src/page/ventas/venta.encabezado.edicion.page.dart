@@ -192,7 +192,7 @@ class _VentaEncabezadoEdicionPageState
               decoration: InputDecoration(
                 icon: Icon(Icons.person, color: colorRojoBase()),
                 labelText: 'Cliente',
-                hintText: 'Escribe para buscar por nombre o código',
+                hintText: 'Busca por nombre, código o RUT',
                 border: InputBorder.none,
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
