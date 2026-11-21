@@ -22,14 +22,15 @@ String formatoHoraCorta(DateTime hora) =>
     '${hora.hour.toString().padLeft(2, '0')}:'
     '${hora.minute.toString().padLeft(2, '0')}';
 
-/// Lo que va en la cápsula de cada venta en la lista:
-/// - Facturada: 'Facturada' (es el único estado que se marca).
-/// - Si no, la hora en que quedó terminada, p. ej. '13:30'.
-/// - null si no hay hora (venta que nunca se terminó): no se muestra cápsula.
+/// Lo que va en la cápsula de cada venta en la lista: la hora en que quedó
+/// terminada, p. ej. '13:30', también en las facturadas (la cápsula verde con
+/// candado ya indica que lo está).
+/// - Facturada sin hora: 'Facturada'.
+/// - Sin hora y sin facturar (nunca se terminó): null, no se muestra cápsula.
 String? textoCapsulaVenta(VentaModel venta) {
-  if (venta.estadoVenta == EstadoVenta.CLOSED) return 'Facturada';
   final hora = venta.fechaHoraLista;
-  return hora == null ? null : formatoHoraCorta(hora);
+  if (hora != null) return formatoHoraCorta(hora);
+  return venta.estadoVenta == EstadoVenta.CLOSED ? 'Facturada' : null;
 }
 
 /// Suma de los totales de [ventas], para el resumen sobre la lista.

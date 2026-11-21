@@ -40,10 +40,15 @@ void main() {
   });
 
   group('textoCapsulaVenta', () {
-    test('facturada muestra Facturada aunque tenga hora', () {
+    test('facturada también muestra la hora en que quedó terminada', () {
       final v = _venta(1000)
         ..estadoVenta = EstadoVenta.CLOSED
         ..fechaHoraLista = DateTime(2026, 11, 20, 13, 30);
+      expect(textoCapsulaVenta(v), '13:30');
+    });
+
+    test('facturada sin hora muestra Facturada', () {
+      final v = _venta(1000)..estadoVenta = EstadoVenta.CLOSED;
       expect(textoCapsulaVenta(v), 'Facturada');
     });
 

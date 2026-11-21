@@ -436,9 +436,9 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     );
   }
 
-  /// Cápsula de la venta: verde con candado si está facturada (el único
-  /// estado que se marca); si no, azul con la hora en que quedó terminada.
-  /// Sin hora (venta nunca terminada) no se muestra nada.
+  /// Cápsula de la venta con la hora en que quedó terminada: verde con
+  /// candado si está facturada (el único estado que se marca), azul con
+  /// reloj si no. Sin hora (venta nunca terminada) no se muestra nada.
   Widget _widgetEstado(VentaModel venta) {
     final texto = textoCapsulaVenta(venta);
     if (texto == null) return const SizedBox.shrink();
@@ -446,7 +446,11 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     final MaterialColor color = facturada ? Colors.green : Colors.blue;
     final IconData icono = facturada ? Icons.lock : Icons.schedule;
     return Semantics(
-      label: facturada ? 'Facturada' : 'Terminada a las $texto',
+      label: !facturada
+          ? 'Terminada a las $texto'
+          : venta.fechaHoraLista == null
+              ? 'Facturada'
+              : 'Facturada, terminada a las $texto',
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
