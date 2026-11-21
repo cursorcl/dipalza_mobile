@@ -1,5 +1,6 @@
 // ignore_for_file: unused_import
 
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:dipalza_movil/src/bloc/login_bloc.dart';
@@ -387,7 +388,7 @@ class _LoginPageState extends State<LoginPage> {
 
         if (mounted) AppNavigator.pushReplacementNamed(AppRoutes.home);
       } catch (e) {
-        print("Error al obtener/guardar rutas asignadas: $e");
+        developer.log('Error al obtener/guardar rutas asignadas', name: 'LoginPage', error: e);
         if (mounted) {
           alertUtil.showAlertDialog(context,
               'No se pudieron obtener las rutas del vendedor. Intente nuevamente.',

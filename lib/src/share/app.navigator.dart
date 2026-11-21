@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart';
 
 import 'app_routes.dart';
@@ -16,7 +17,7 @@ class AppNavigator {
 
   static void popUntil(String routeName) {
     navigatorKey.currentState!.popUntil((route) {
-      print('ruta actual: ${route.settings.name}'); // para debug
+      developer.log('ruta actual: ${route.settings.name}', name: 'AppNavigator');
       return route.settings.name == routeName;
     });
   }

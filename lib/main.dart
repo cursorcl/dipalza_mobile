@@ -13,7 +13,6 @@ import 'package:dipalza_movil/src/services/locator.dart';
 import 'package:dipalza_movil/src/services/posicion_queue.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/app_router.dart';
-import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:dipalza_movil/src/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart'; // Asegúrate de tener esta dependencia
 
@@ -62,11 +63,11 @@ class _AuthGateState extends State<AuthGate> {
             isSessionValid = false;
           }
         } else {
-          print("El token tiene formato válido pero ha expirado.");
+          developer.log('El token tiene formato válido pero ha expirado.', name: 'AuthGate');
         }
       } catch (e) {
         // AQUÍ CAPTURAMOS TU ERROR
-        print("Error al decodificar token (formato inválido): $e");
+        developer.log('Error al decodificar token (formato inválido)', name: 'AuthGate', error: e);
         isSessionValid = false;
       }
     }
@@ -88,7 +89,7 @@ class _AuthGateState extends State<AuthGate> {
       } catch (e) {
         // Fallo de red/servidor al consultar: no bloqueamos una sesión
         // válida por un error transitorio ajeno a la asignación de rutas.
-        print("Error al verificar rutas asignadas: $e");
+        developer.log('Error al verificar rutas asignadas', name: 'AuthGate', error: e);
         tieneRutasAsignadas = true;
       }
     }

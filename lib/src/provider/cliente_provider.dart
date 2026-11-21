@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -19,7 +20,7 @@ class ClientesProvider {
       final List<dynamic> data = response.data;
       return data.map((json) => ClientesModel.fromJson(json)).toList();
     } catch (error) {
-      print(error.toString());
+      developer.log('Error al consultar clientes', name: 'ClientesProvider', error: error);
       rethrow;
     }
   }
@@ -44,7 +45,7 @@ class ClientesProvider {
       }
       return clientesModelFromJson('[]');
     } catch (error) {
-      print(error.toString());
+      developer.log('Error al consultar clientes', name: 'ClientesProvider', error: error);
       return clientesModelFromJson('[]');
     }
   }
@@ -65,7 +66,7 @@ class ClientesProvider {
       }
       return clienteModelFromJson('{}');
     } catch (error) {
-      print(error.toString());
+      developer.log('Error al consultar clientes', name: 'ClientesProvider', error: error);
       return clienteModelFromJson('{}');
     }
   }
