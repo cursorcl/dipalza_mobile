@@ -8,8 +8,11 @@ import 'app_color_scheme.dart';
 class AppTheme {
   // TEMA CLARO
   static ThemeData get lightTheme {
+    // El esquema nace del rojo corporativo: desde el naranja, Material 3
+    // derivaba tonos café/beige que pintaban diálogos y botones sin color
+    // propio (p. ej. "Cerrar sesión" en Configuración).
     final appColors = AppColorScheme.fromSeed(
-      seedColor: AppColorScheme.naranjaCorporativo,
+      seedColor: AppColorScheme.rojoCorporativo,
       brightness: Brightness.light,
     );
 
