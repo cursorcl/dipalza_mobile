@@ -56,14 +56,16 @@ class AppColorScheme {
     );
 
     return AppColorScheme(
-      // Colores estándar del ColorScheme base
-      primary: baseColorScheme.primary,
-      onPrimary: baseColorScheme.onPrimary,
+      // primary es el rojo corporativo exacto (fromSeed lo oscurecería a un
+      // granate) y la superficie es blanca: con la superficie del seed los
+      // diálogos salían con fondo beige/rosado.
+      primary: _rojoBaseColor,
+      onPrimary: Colors.white,
       secondary: baseColorScheme.secondary,
       onSecondary: baseColorScheme.onSecondary,
-      surface: baseColorScheme.surface,
+      surface: Colors.white,
       onSurface: baseColorScheme.onSurface,
-      background: baseColorScheme.surface,
+      background: Colors.white,
       onBackground: baseColorScheme.onSurface,
       error: baseColorScheme.error,
       onError: baseColorScheme.onError,
