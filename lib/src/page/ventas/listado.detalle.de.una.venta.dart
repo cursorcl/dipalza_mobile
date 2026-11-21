@@ -13,6 +13,7 @@ import '../../share/app.navigator.dart';
 import '../../share/estado.venta.dart';
 import '../../widget/connectivity_banner.widget.dart';
 import '../../widget/fondo.widget.dart';
+import '../../widget/lista.widgets.dart';
 
 class ListadoDetalleDeUnaVentaPage extends StatefulWidget {
   final VentaModel ventaModel;
@@ -48,24 +49,10 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
         automaticallyImplyLeading: !widget.esEdicion,
         leadingWidth: widget.esEdicion ? 140 : null,
         leading: widget.esEdicion
-            ? Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0, vertical: 8.0),
-                child: TextButton.icon(
-                  onPressed: () {
-                    _inicializarNuevaVenta(context);
-                  },
-                  icon: const Icon(Icons.add, size: 20),
-                  label: const Text("Agregar"),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.white.withOpacity(0.35),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                ),
+            ? BotonBarra(
+                icono: Icons.add,
+                texto: 'Agregar',
+                onPressed: () => _inicializarNuevaVenta(context),
               )
             : BackButton(
                 onPressed: () => AppNavigator.pop(),
@@ -78,32 +65,20 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
         actions: !widget.esEdicion
             ? []
             : [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 8.0), // Margen para que no toque los bordes
-                  child: TextButton.icon(
-                    onPressed: _finalizando ? null : _finalizarVenta,
-                    icon: _finalizando
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.check_circle_outline, size: 20),
-                    label: Text(_finalizando ? "Finalizando..." : "Finalizar"),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.white.withOpacity(0.35),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                  ),
+                BotonBarra(
+                  icono: Icons.check_circle_outline,
+                  texto: _finalizando ? 'Finalizando...' : 'Finalizar',
+                  onPressed: _finalizando ? null : _finalizarVenta,
+                  iconoPersonalizado: _finalizando
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
                 ),
               ],
       ),
@@ -176,84 +151,67 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
         children: <Widget>[
           const ConnectivityBanner(),
           Expanded(
-              child: ListView(
-                  children: _createWidgetVentasDetalleItems(
-                      context, _detalles))),
+              child: _detalles.isEmpty
+                  ? ListView(
+                      // Permite deslizar para refrescar aunque esté vacía.
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [_createEmptyCard()])
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(top: 4, bottom: 16),
+                      itemCount: _detalles.length,
+                      itemBuilder: (context, i) =>
+                          _widgetItemDetalle(context, _detalles[i]))),
         ],
       ))
     ]);
   }
 
-  List<Widget> _createWidgetVentasDetalleItems(
-      BuildContext context, List<VentaDetalleModel> listaVenta) {
-    final List<Widget> _listItem = [];
-    if (listaVenta.length == 0) {
-      _listItem.add(_createEmptyCard());
-    } else {
-      listaVenta.forEach((itemVenta) {
-        final slidableItem = Slidable(
-          key: ValueKey(itemVenta.id),
-          endActionPane: widget.esEdicion
-              ? ActionPane(
-                  motion: const StretchMotion(), // Un efecto visual
-                  children: [
-                    // --- BOTÓN ELIMINAR ---
-                    SlidableAction(
-                      onPressed: (context) {
-                        // Llama a tu función de lógica
-                        _eliminarItem(context, itemVenta);
-                      },
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      icon: Icons.delete,
-                      label: 'Eliminar',
-                    ),
-                    // --- BOTÓN MODIFICAR ---
-                    SlidableAction(
-                      onPressed: (context) {
-                        // Llama a tu función de lógica
-                        _modificarItem(context, itemVenta);
-                      },
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      icon: Icons.edit,
-                      label: 'Modificar',
-                    ),
-                  ],
-                )
-              : null,
-
-          // El hijo es tu widget original
-          child: VentaDetalleTile(item: itemVenta),
-        );
-        // ---- FIN DE LA MODIFICACIÓN ----
-        _listItem.add(slidableItem);
-      });
-    }
-    return _listItem;
+  Widget _widgetItemDetalle(BuildContext context, VentaDetalleModel itemVenta) {
+    return Slidable(
+      key: ValueKey(itemVenta.id),
+      endActionPane: widget.esEdicion
+          ? ActionPane(
+              motion: const StretchMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (context) => _eliminarItem(context, itemVenta),
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  icon: Icons.delete,
+                  label: 'Eliminar',
+                ),
+                SlidableAction(
+                  onPressed: (context) => _modificarItem(context, itemVenta),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  icon: Icons.edit,
+                  label: 'Modificar',
+                ),
+              ],
+            )
+          : null,
+      // En edición, el menú ⋮ ofrece las mismas acciones que el deslizar y
+      // tocar la tarjeta abre la modificación.
+      child: VentaDetalleTile(
+        item: itemVenta,
+        onModificar:
+            widget.esEdicion ? () => _modificarItem(context, itemVenta) : null,
+        onEliminar:
+            widget.esEdicion ? () => _eliminarItem(context, itemVenta) : null,
+      ),
+    );
   }
 
   Widget _createEmptyCard() {
-    return const Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 20,
-          child: Icon(Icons.insert_chart),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Sin productos agregados!!',
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.0,
-                )),
-          ],
-        ),
-      ),
+    return EstadoVacioLista(
+      icono: Icons.shopping_basket_outlined,
+      titulo: 'Aún no hay productos en esta venta',
+      mensaje: widget.esEdicion
+          ? 'Agrega el primer producto para comenzar.'
+          : null,
+      textoAccion: widget.esEdicion ? 'Agregar producto' : null,
+      onAccion: widget.esEdicion ? () => _inicializarNuevaVenta(context) : null,
     );
   }
 

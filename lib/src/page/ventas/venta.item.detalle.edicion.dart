@@ -6,6 +6,7 @@ import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:dipalza_movil/src/utils/alert_util.dart';
+import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import '../../bloc/productos_bloc.dart';
@@ -165,7 +166,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       return Scaffold(
         appBar: AppBar(
           title: Text(widget.actualVentaDetalle == null ? 'Agregar producto' : 'Editar detalle'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: colorRojoBase(),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -177,7 +178,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(widget.actualVentaDetalle == null ? 'Agregar producto' : 'Editar detalle'),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: colorRojoBase(),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
@@ -188,7 +189,9 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
               label: const Text('Guardar'),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.white.withOpacity(0.15),
+                // Borde blanco en vez de fondo semitransparente: mismo estilo
+                // que BotonBarra y texto blanco directo sobre el rojo (5:1).
+                side: const BorderSide(color: Colors.white, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),

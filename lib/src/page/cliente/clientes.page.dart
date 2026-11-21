@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 
 import '../../share/app.navigator.dart';
 import '../../share/app_scaffold_key.dart';
+import '../../utils/presentacion_venta.dart';
 import '../../widget/connectivity_banner.widget.dart';
+import '../../widget/lista.widgets.dart';
 
 class ClientesPage extends StatefulWidget {
   final bool isForSelection;
@@ -154,11 +156,15 @@ class _ClientesPageState extends State<ClientesPage> {
 
   Widget _creaListaClientes(
       BuildContext context, List<ClientesModel> listaCliente) {
-    if (listaCliente.length == 0) return _createEmptyCard();
+    if (listaCliente.length == 0) {
+      return RefreshIndicator(
+          onRefresh: getListaClientesRefrescar, child: _createEmptyCard());
+    }
 
     return RefreshIndicator(
       onRefresh: getListaClientesRefrescar,
       child: ListView.builder(
+        padding: const EdgeInsets.only(top: 4, bottom: 16),
         itemCount: listaCliente.length,
         itemBuilder: (context, i) {
           return _creaCard(listaCliente[i]);
@@ -167,93 +173,104 @@ class _ClientesPageState extends State<ClientesPage> {
     );
   }
 
-  _createEmptyCard() {
-    return Card(
-        child: ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        child: const Icon(Icons.account_box),
-        backgroundColor: colorRojoBase(),
-        foregroundColor: Colors.white,
-      ),
-      title: const Text(
-          'No tienes clientes asignados. Contacta a administración si esto no es correcto.'),
-    ));
+  Widget _createEmptyCard() {
+    return ListView(
+      // Permite deslizar para refrescar aunque no haya clientes.
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: const [
+        EstadoVacioLista(
+          icono: Icons.people_outline,
+          titulo: 'No tienes clientes asignados',
+          mensaje: 'Contacta a administración si esto no es correcto.',
+        ),
+      ],
+    );
   }
 
-  _creaCard(ClientesModel cliente) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 25,
-          child: const Icon(Icons.account_box),
-          backgroundColor: colorRojoBase(),
-          foregroundColor: Colors.white,
+  Future<void> _verUltimaVenta(ClientesModel cliente) async {
+    try {
+      var ventaModel =
+          await VentaProvider.ventaProvider.obtenerUltimaVenta(cliente);
+      if (!mounted) return;
+      if (ventaModel == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Este cliente no tiene ventas asociadas.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return; // No navega
+      }
+      AppNavigator.pushNamed(AppRoutes.listadoUltimaVenta,
+          arguments: {'ventaModel': ventaModel});
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo completar la operación: ${e.toString()}'),
+          backgroundColor: Colors.red,
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(cliente.razon,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.0,
-                )),
-            const SizedBox(
-              height: 2.0,
+      );
+    }
+  }
+
+  Widget _creaCard(ClientesModel cliente) {
+    final estiloSecundario =
+        TextStyle(fontSize: 14, color: Colors.grey.shade700);
+    return TarjetaLista(
+      // Al elegir cliente para una venta, tocar la tarjeta lo selecciona.
+      onTap: widget.isForSelection ? () => AppNavigator.pop(cliente) : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AvatarIniciales(iniciales: inicialesCliente(cliente.razon)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(cliente.razon.trim(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(getFormatRut(cliente.rut), style: estiloSecundario),
+                // Dirección y teléfono solo si vienen: antes un dato vacío
+                // dejaba una línea en blanco.
+                if (cliente.direccion.trim().isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _lineaConIcono(Icons.place_outlined,
+                      cliente.direccion.trim(), estiloSecundario),
+                ],
+                if (cliente.telefono.trim().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  _lineaConIcono(Icons.phone_outlined,
+                      cliente.telefono.trim(), estiloSecundario),
+                ],
+              ],
             ),
-            Text(getFormatRut(cliente.rut),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12.0,
-                )),
-            const SizedBox(
-              height: 5.0,
-            )
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(cliente.direccion, style: const TextStyle(fontSize: 12.0)),
-            Text(cliente.telefono, style: const TextStyle(fontSize: 12.0))
-          ],
-        ),
-        trailing: IconButton(
-            icon: const Icon(Icons.remove_red_eye_outlined),
-            onPressed: () async {
-              try {
-                var ventaModel =
-                await VentaProvider.ventaProvider.obtenerUltimaVenta(cliente);
-                if (ventaModel == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Este cliente no tiene ventas asociadas.'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                  return; // No navega
-                } else {
-                  AppNavigator.pushNamed(AppRoutes.listadoUltimaVenta,
-                      arguments: {'ventaModel': ventaModel});
-                }
-              } catch(e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('No se pudo completar la operación: ${e.toString()}'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            }),
-        onTap: () {
-          if (widget.isForSelection) {
-            AppNavigator.pop(cliente);
-          } else {
-            // Tu acción original
-          }
-        },
+          ),
+          IconButton(
+            icon: Icon(Icons.history, color: Colors.grey.shade700),
+            tooltip: 'Ver última venta',
+            onPressed: () => _verUltimaVenta(cliente),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _lineaConIcono(IconData icono, String texto, TextStyle estilo) {
+    return Row(
+      children: [
+        Icon(icono, size: 16, color: Colors.grey.shade600),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(texto,
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: estilo),
+        ),
+      ],
     );
   }
 }
