@@ -1,3 +1,18 @@
+# [2.16.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.2...v2.16.0) (2026-11-21)
+
+
+### Bug Fixes
+
+* al modificar una venta el cliente no se puede cambiar ([#66](https://github.com/cursorcl/dipalza_mobile/issues/66)) ([cc05100](https://github.com/cursorcl/dipalza_mobile/commit/cc0510069ce232dc5e6fcd2d0f73c317d14f97b8))
+* la lista de ventas mantiene el orden en que se ingresaron ([#64](https://github.com/cursorcl/dipalza_mobile/issues/64)) ([5b700f0](https://github.com/cursorcl/dipalza_mobile/commit/5b700f0c3f6189f9d871b14c6397994e27c8e7d1))
+* pantalla de arranque blanca con el logo de Dipalza ([#72](https://github.com/cursorcl/dipalza_mobile/issues/72)) ([a298376](https://github.com/cursorcl/dipalza_mobile/commit/a29837656a19f1d6fede495f9224567126b64894))
+
+
+### Features
+
+* buscar una venta y refrescar la lista deslizando hacia abajo ([#65](https://github.com/cursorcl/dipalza_mobile/issues/65)) ([4ec3206](https://github.com/cursorcl/dipalza_mobile/commit/4ec32062bd7d0fca6ffc09794faa3c7c22d2e314))
+* fondo blanco en toda la app ([#67](https://github.com/cursorcl/dipalza_mobile/issues/67)) ([bf0d204](https://github.com/cursorcl/dipalza_mobile/commit/bf0d204f9672a1e474404416ea4e89127b459ac8))
+
 ## [2.15.2](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.1...v2.15.2) (2026-11-17)
 
 

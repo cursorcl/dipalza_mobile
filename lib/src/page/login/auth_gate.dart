@@ -6,6 +6,7 @@ import '../../services/api_client.dart';
 import '../../share/app.navigator.dart';
 import '../../share/app_routes.dart';
 import '../../share/prefs_usuario.dart';
+import '../../utils/utils.dart';
 
 class AuthGate extends StatefulWidget {
   /// Permite inyectar un [ApiClient] durante los tests. En la app real se
@@ -115,22 +116,25 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // Diseño de tu Splash Screen
-    return const Scaffold(
-      backgroundColor: Colors.white, // O el color de tu marca
+    // Mismo fondo blanco y mismo logo que la pantalla de arranque nativa, así
+    // el paso de una a otra no se nota (antes: un ícono de escudo azul).
+    return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Pega aquí tu Logo si tienes uno:
-            // Image.asset('assets/img/logo_dipalza.png', width: 150),
-            Icon(Icons.shield_moon, size: 80, color: Colors.blue), // Placeholder
-            SizedBox(height: 24),
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            Image.asset(
+              'assets/image/logo_dipalza_transparente.png',
+              width: 160,
+              semanticLabel: 'Dipalza',
+            ),
+            const SizedBox(height: 32),
+            CircularProgressIndicator(color: colorRojoBase()),
+            const SizedBox(height: 16),
             Text(
               "Iniciando sistema...",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: Colors.grey.shade700),
             )
           ],
         ),

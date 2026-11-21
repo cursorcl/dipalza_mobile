@@ -126,7 +126,7 @@ class AppTheme {
       ),
 
       // SCAFFOLD
-      scaffoldBackgroundColor: AppColorScheme.grisClaro,
+      scaffoldBackgroundColor: Colors.white,
 
       // EFECTOS
       splashColor: appColors.primary.withOpacity(0.1),
