@@ -2,6 +2,7 @@ import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/estado.venta.dart';
+import 'package:dipalza_movil/src/utils/filtro_ventas.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -21,11 +22,24 @@ class ListadeDeVentasPage extends StatefulWidget {
 class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   late Future<List<VentaModel>> _listaVentasFuture;
   int cantidadVentas = 0;
+  final TextEditingController _buscarController = TextEditingController();
+  bool _verBuscar = false;
 
   @override
   void initState() {
     super.initState();
     _cargarVentas();
+  }
+
+  @override
+  void dispose() {
+    _buscarController.dispose();
+    super.dispose();
+  }
+
+  void _cerrarBuscador() {
+    _buscarController.clear();
+    setState(() => _verBuscar = false);
   }
 
   void _cargarVentas() {
@@ -51,6 +65,11 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
           style: TextStyle(color: Colors.white),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white),
+            tooltip: 'Buscar venta',
+            onPressed: () => setState(() => _verBuscar = true),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
             child: TextButton.icon(
@@ -126,10 +145,11 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 child: Column(
                   children: <Widget>[
                     const ConnectivityBanner(),
+                    if (_verBuscar) _widgetInputBuscar(),
                     Expanded(
                         child: ListView(
-                            children:
-                            _widgetListOfItemVenta(context, snapshot.data!))),
+                            children: _widgetListOfItemVenta(
+                                context, snapshot.data!))),
                   ],
                 ))
           ]);
@@ -144,13 +164,55 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     final List<Widget> _listItem = [];
     if (listaVenta.length == 0) {
       _listItem.add(_widgetEmptyItem());
+      return _listItem;
+    }
+    final filtradas = filtrarVentas(listaVenta, _buscarController.text);
+    if (filtradas.isEmpty) {
+      _listItem.add(_widgetSinResultados());
     } else {
-      listaVenta.forEach((itemVenta) {
+      filtradas.forEach((itemVenta) {
         _listItem..add(_widgetItemOfVenta(itemVenta));
       });
     }
 
     return _listItem;
+  }
+
+  Widget _widgetInputBuscar() {
+    return Container(
+      color: colorRojoBase(),
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.search),
+          title: TextField(
+            controller: _buscarController,
+            autofocus: true,
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(
+                hintText: 'Buscar por nombre o RUT',
+                border: InputBorder.none),
+            onChanged: (_) => setState(() {}),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.cancel),
+            tooltip: 'Cerrar búsqueda',
+            onPressed: _cerrarBuscador,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _widgetSinResultados() {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.search_off),
+        title: Text(
+            'No hay ventas que coincidan con "${_buscarController.text.trim()}"',
+            style: const TextStyle(fontSize: 13.0)),
+      ),
+    );
   }
 
   Widget _widgetEmptyItem() {
