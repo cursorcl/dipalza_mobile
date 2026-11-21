@@ -5,6 +5,7 @@ import 'package:dipalza_movil/src/provider/cliente_provider.dart';
 import 'package:dipalza_movil/src/share/cached_list_store.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:dipalza_movil/src/utils/filtro_clientes.dart';
 
 class ClientesBloc {
   static final ClientesBloc _singleton = ClientesBloc._internal();
@@ -47,13 +48,9 @@ class ClientesBloc {
     final listaCompleta = _clientesController.valueOrNull;
     if (listaCompleta == null || listaCompleta.isEmpty) return [];
 
-    final terminoUpper = termino.toUpperCase();
-
-    return listaCompleta.where((cliente) {
-      final razonMatch = cliente.razon.toUpperCase().contains(terminoUpper);
-      final codigoMatch = cliente.codigo.toUpperCase().contains(terminoUpper);
-      return razonMatch || codigoMatch;
-    }).toList();
+    return listaCompleta
+        .where((cliente) => coincideCliente(cliente, termino))
+        .toList();
   }
 
   Future<void> _refrescarDesdeRed() async {

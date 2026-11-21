@@ -2,6 +2,7 @@ import 'package:dipalza_movil/src/bloc/clientes_bloc.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
+import 'package:dipalza_movil/src/utils/filtro_clientes.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:dipalza_movil/src/widget/fondo.widget.dart';
 import 'package:flutter/material.dart';
@@ -123,9 +124,7 @@ class _ClientesPageState extends State<ClientesPage> {
   List<ClientesModel> _filtrarLista(List<ClientesModel> listaCompleta) {
     if (controller.text.isEmpty) return listaCompleta;
     return listaCompleta
-        .where((cliente) => cliente.razon
-            .toUpperCase()
-            .contains(controller.text.toUpperCase()))
+        .where((cliente) => coincideCliente(cliente, controller.text))
         .toList();
   }
 
@@ -143,7 +142,7 @@ class _ClientesPageState extends State<ClientesPage> {
               title: new TextField(
                 controller: controller,
                 decoration: const InputDecoration(
-                    hintText: 'Buscar', border: InputBorder.none),
+                    hintText: 'Buscar por nombre, código o RUT', border: InputBorder.none),
                 onChanged: onSearchTextChanged,
               ),
               trailing: new IconButton(
