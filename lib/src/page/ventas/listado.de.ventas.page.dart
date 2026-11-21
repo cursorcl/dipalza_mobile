@@ -48,6 +48,18 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     });
   }
 
+  /// Deslizar hacia abajo: se espera la respuesta antes de reemplazar el
+  /// future, así la lista actual sigue a la vista mientras gira el indicador
+  /// (con _cargarVentas() el FutureBuilder la cambiaría por el spinner
+  /// central y el RefreshIndicator desaparecería a mitad del gesto).
+  Future<void> _refrescarVentas() async {
+    final ventas = await VentaProvider.ventaProvider.obtenerListaVentas();
+    if (!mounted) return;
+    setState(() {
+      _listaVentasFuture = Future.value(ventas);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,9 +159,15 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                     const ConnectivityBanner(),
                     if (_verBuscar) _widgetInputBuscar(),
                     Expanded(
-                        child: ListView(
-                            children: _widgetListOfItemVenta(
-                                context, snapshot.data!))),
+                        child: RefreshIndicator(
+                          onRefresh: _refrescarVentas,
+                          child: ListView(
+                              // Permite el gesto aunque las ventas no
+                              // alcancen a llenar la pantalla.
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: _widgetListOfItemVenta(
+                                  context, snapshot.data!)),
+                        )),
                   ],
                 ))
           ]);
