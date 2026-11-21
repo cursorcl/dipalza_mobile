@@ -9,6 +9,7 @@ import 'package:dipalza_movil/src/page/login/auth_gate.dart';
 import 'package:dipalza_movil/src/services/api_client.dart';
 import 'package:dipalza_movil/src/services/background_location_service.dart';
 import 'package:dipalza_movil/src/services/connectivity_service.dart';
+import 'package:dipalza_movil/src/services/diagnostico_gps.dart';
 import 'package:dipalza_movil/src/services/locator.dart';
 import 'package:dipalza_movil/src/services/posicion_queue.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
@@ -24,6 +25,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
 import 'package:provider/provider.dart';
 
@@ -39,6 +41,11 @@ Future<bool> onStart(ServiceInstance service) async {
   DBLogProvider.db.nuevoLog(creaLogInfo('BackgroundService', 'onStart',
       'baseUrl=${apiClient.dio.options.baseUrl}'));
 
+  // Diagnóstico remoto (Crashlytics) de los huecos del servicio GPS: este
+  // isolate no comparte la inicialización de Firebase de la app principal.
+  final diagnostico = await _crearDiagnosticoGps(prefs);
+  await diagnostico.alIniciarServicio(prefs.ultimoCicloGps);
+
   // Reenvía a la UI (isolate principal) la sesión expirada detectada acá:
   // el ApiClient de este isolate es una instancia independiente, su stream
   // onSessionExpired no llega solo al listener de MyApp.
@@ -52,6 +59,8 @@ Future<bool> onStart(ServiceInstance service) async {
     await prefs.initPrefs();
     apiClient.resetEstadoRefresh();
     _registrarBG('Credenciales releídas tras login');
+    diagnostico.evento('Credenciales releídas tras login');
+    await _identificarVendedor(diagnostico, prefs);
   });
 
   // Android e iOS: timer cada 30 segundos. Se usa un timer en ambas
@@ -75,11 +84,13 @@ Future<bool> onStart(ServiceInstance service) async {
     // Timer mata el isolate y el servicio deja de reportar sin dejar rastro.
     try {
       _registrarBG('Tick');
+      prefs.ultimoCicloGps = await diagnostico.alCiclo();
 
       // ✅ Guard antes de pedir posición
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _registrarBG('GPS desactivado, skip envío');
+        await diagnostico.alFallarGps('GPS desactivado');
         return; // espera al próximo tick
       }
 
@@ -87,23 +98,72 @@ Future<bool> onStart(ServiceInstance service) async {
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         _registrarBG('Permiso de ubicación denegado, skip envío');
+        await diagnostico.alFallarGps('Permiso de ubicación denegado');
         return;
       }
 
       final posicion = await Geolocator.getCurrentPosition(
         locationSettings: locationSettings,
       ).timeout(const Duration(seconds: 25));
+      diagnostico.alObtenerPosicion();
       final enviado = await _procesarPosicion(apiClient, posicion);
+      if (!enviado) diagnostico.evento('Envío falló, posición encolada');
       _registrarBG((enviado
               ? 'Ciclo OK (enviado)'
               : 'Ciclo OK (encolado, envío falló)') +
           ': ${posicion.latitude}, ${posicion.longitude}');
     } catch (e, st) {
       _registrarBG('Error en tick: $e\n$st', error: true);
+      await diagnostico.alFallarGps(e is TimeoutException ? 'Tiempo agotado esperando el GPS' : 'Error: ${e.runtimeType}');
     }
   });
 
   return true;
+}
+
+/// Inicializa Firebase en el isolate del servicio y arma el diagnóstico. Si
+/// Firebase falla, el diagnóstico sigue funcionando sin enviar nada.
+Future<DiagnosticoGps> _crearDiagnosticoGps(PreferenciasUsuario prefs) async {
+  ReporteDiagnostico reporte;
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    }
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    reporte = ReporteCrashlytics();
+  } catch (e) {
+    _registrarBG('Crashlytics no disponible en el servicio: $e', error: true);
+    reporte = _ReporteNulo();
+  }
+  final diagnostico = DiagnosticoGps(reporte: reporte, estadoTelefono: _estadoTelefono);
+  await _identificarVendedor(diagnostico, prefs);
+  return diagnostico;
+}
+
+Future<void> _identificarVendedor(DiagnosticoGps diagnostico, PreferenciasUsuario prefs) async {
+  try {
+    await diagnostico.identificar('${prefs.userName} (vendedor ${prefs.vendedor})');
+  } catch (_) {}
+}
+
+/// Estado del teléfono que acompaña cada reporte de diagnóstico.
+Future<Map<String, Object>> _estadoTelefono() async {
+  final info = await PackageInfo.fromPlatform();
+  return {
+    'gps_encendido': await Geolocator.isLocationServiceEnabled(),
+    'permiso_ubicacion': (await Geolocator.checkPermission()).name,
+    'bateria_sin_restriccion': await Permission.ignoreBatteryOptimizations.isGranted,
+    'version_app': '${info.version}+${info.buildNumber}',
+  };
+}
+
+class _ReporteNulo implements ReporteDiagnostico {
+  @override
+  void miga(String mensaje) {}
+  @override
+  Future<void> identificar(String usuario) async {}
+  @override
+  Future<void> reportar(String motivo, Map<String, Object> claves) async {}
 }
 
 /// Deja el mensaje en logcat (tag flutter, también en release) y en la
