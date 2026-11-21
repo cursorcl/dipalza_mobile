@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../theme/app_color_scheme.dart';
 import '../validacion/rut_validator.dart';
 
 class HexColor extends Color {
@@ -21,9 +22,9 @@ HexColor colorIconHome() {
   return HexColor('#1464f6');
 }
 
-HexColor colorRojoBase() {
-  return HexColor('#f44336');
-}
+/// Rojo de las barras y botones principales. Se define una sola vez, en
+/// AppColorScheme.rojoCorporativo.
+Color colorRojoBase() => AppColorScheme.rojoCorporativo;
 
 HexColor colorVerdeBase() {
   return HexColor('#004300');

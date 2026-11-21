@@ -39,7 +39,9 @@ class AppColorScheme {
 
   // COLORES CORPORATIVOS CONSTANTES
   static const Color _iconHomeColor = Color(0xFF1464F6);
-  static const Color _rojoBaseColor = Color(0xFFF44336);
+  // Rojo 700 de Material: texto blanco encima da contraste 5:1 (el
+  // anterior #F44336 daba 3,7:1, bajo el mínimo de 4,5:1).
+  static const Color _rojoBaseColor = rojoCorporativo;
   static const Color _verdeBaseColor = Color(0xFF004300);
 
   // ✅ TU PROPIO fromSeed!
@@ -128,6 +130,8 @@ class AppColorScheme {
 
   // COLORES PREDEFINIDOS ÚTILES
   static const Color naranjaCorporativo = Color(0xFFFF9F00);
+  /// Rojo corporativo: única definición, la usan el tema y colorRojoBase().
+  static const Color rojoCorporativo = Color(0xFFD32F2F);
   static const Color grisClaro = Color(0xFFF5F5F5);
   static const Color grisOscuro = Color(0xFF424242);
 }

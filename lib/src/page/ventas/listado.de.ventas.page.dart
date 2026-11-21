@@ -12,6 +12,7 @@ import '../../share/app_routes.dart';
 import '../../share/app_scaffold_key.dart';
 import '../../widget/connectivity_banner.widget.dart';
 import '../../widget/fondo.widget.dart';
+import '../../widget/lista.widgets.dart';
 
 class ListadeDeVentasPage extends StatefulWidget {
   const ListadeDeVentasPage({Key? key}) : super(key: key);
@@ -103,21 +104,10 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
             tooltip: 'Buscar venta',
             onPressed: () => setState(() => _verBuscar = true),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-            child: TextButton.icon(
-              onPressed: _abrirNuevaVenta,
-              icon: const Icon(Icons.add, size: 20),
-              label: const Text("Nueva Venta"),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.white.withOpacity(0.35),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-              ),
-            ),
+          BotonBarra(
+            icono: Icons.add,
+            texto: 'Nueva Venta',
+            onPressed: _abrirNuevaVenta,
           ),
         ],
       ),
@@ -276,48 +266,22 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   }
 
   Widget _widgetSinResultados() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
-      child: Column(
-        children: [
-          Icon(Icons.search_off, size: 56, color: Colors.grey.shade400),
-          const SizedBox(height: 12),
-          Text('No hay ventas que coincidan con "${_buscarController.text.trim()}"',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade800)),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => setState(() => _buscarController.clear()),
-            child: const Text('Limpiar búsqueda'),
-          ),
-        ],
-      ),
+    return EstadoVacioLista(
+      icono: Icons.search_off,
+      titulo: 'No hay ventas que coincidan con "${_buscarController.text.trim()}"',
+      textoAccion: 'Limpiar búsqueda',
+      accionPrincipal: false,
+      onAccion: () => setState(() => _buscarController.clear()),
     );
   }
 
   Widget _widgetSinVentas() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
-      child: Column(
-        children: [
-          Icon(Icons.receipt_long_outlined,
-              size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 16),
-          const Text('Aún no hay ventas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text('Las ventas que ingreses aparecerán aquí.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade700)),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _abrirNuevaVenta,
-            icon: const Icon(Icons.add),
-            label: const Text('Nueva venta'),
-            style: FilledButton.styleFrom(backgroundColor: colorRojoBase()),
-          ),
-        ],
-      ),
+    return EstadoVacioLista(
+      icono: Icons.receipt_long_outlined,
+      titulo: 'Aún no hay ventas',
+      mensaje: 'Las ventas que ingreses aparecerán aquí.',
+      textoAccion: 'Nueva venta',
+      onAccion: _abrirNuevaVenta,
     );
   }
 
@@ -353,47 +317,29 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                   ),
                 ],
               ),
-        child: Card(
-          elevation: 0,
-          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          color: facturada ? Colors.green.shade50 : Colors.white,
-          clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-          child: InkWell(
-            // Toda la tarjeta abre el detalle (antes solo la flecha).
-            onTap: () => _verDetalle(itemVenta),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _widgetIniciales(itemVenta, facturada),
-                  const SizedBox(width: 12),
-                  Expanded(child: _widgetDatosVenta(itemVenta)),
-                  _widgetMenuAcciones(itemVenta, facturada),
-                ],
-              ),
-            ),
+        child: TarjetaLista(
+          color: facturada ? Colors.green.shade50 : null,
+          // Toda la tarjeta abre el detalle (antes solo la flecha).
+          onTap: () => _verDetalle(itemVenta),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AvatarIniciales(
+                  iniciales: inicialesCliente(itemVenta.nombreCliente),
+                  color: facturada ? Colors.green : Colors.red),
+              const SizedBox(width: 12),
+              Expanded(child: _widgetDatosVenta(itemVenta)),
+              facturada
+                  ? const SizedBox(width: anchoMenuAcciones)
+                  : MenuAccionesLista(
+                      tooltip: 'Acciones de la venta',
+                      onModificar: () => _modificarVenta(itemVenta),
+                      onEliminar: () =>
+                          _showDialogRemoveItemVenta(context, itemVenta),
+                    ),
+            ],
           ),
         ));
-  }
-
-  Widget _widgetIniciales(VentaModel venta, bool facturada) {
-    return ExcludeSemantics(
-      child: CircleAvatar(
-        radius: 20,
-        backgroundColor:
-            facturada ? Colors.green.shade100 : Colors.red.shade50,
-        child: Text(inicialesCliente(venta.nombreCliente),
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: facturada ? Colors.green.shade800 : Colors.red.shade800)),
-      ),
-    );
   }
 
   Widget _widgetDatosVenta(VentaModel venta) {
@@ -443,73 +389,15 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
     final texto = textoCapsulaVenta(venta);
     if (texto == null) return const SizedBox.shrink();
     final facturada = venta.estadoVenta == EstadoVenta.CLOSED;
-    final MaterialColor color = facturada ? Colors.green : Colors.blue;
-    final IconData icono = facturada ? Icons.lock : Icons.schedule;
-    return Semantics(
-      label: !facturada
+    return Capsula(
+      texto: texto,
+      color: facturada ? Colors.green : Colors.blue,
+      icono: facturada ? Icons.lock : Icons.schedule,
+      semantica: !facturada
           ? 'Terminada a las $texto'
           : venta.fechaHoraLista == null
               ? 'Facturada'
               : 'Facturada, terminada a las $texto',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(
-          color: color.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.shade200),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, size: 12, color: color.shade900),
-            const SizedBox(width: 4),
-            Text(texto,
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: color.shade900,
-                    fontFeatures: const [FontFeature.tabularFigures()])),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Menú ⋮ con las mismas acciones que el deslizar, para que no dependan
-  /// de un gesto que no se ve. Una venta facturada no tiene acciones.
-  Widget _widgetMenuAcciones(VentaModel venta, bool facturada) {
-    // Mismo ancho que el botón ⋮, para que los totales queden alineados.
-    if (facturada) return const SizedBox(width: 48);
-    return PopupMenuButton<String>(
-      tooltip: 'Acciones de la venta',
-      icon: Icon(Icons.more_vert, color: Colors.grey.shade700),
-      onSelected: (accion) {
-        if (accion == 'modificar') {
-          _modificarVenta(venta);
-        } else if (accion == 'eliminar') {
-          _showDialogRemoveItemVenta(context, venta);
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'modificar',
-          child: ListTile(
-            leading: Icon(Icons.edit),
-            title: Text('Modificar'),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: 'eliminar',
-          child: ListTile(
-            leading: Icon(Icons.delete, color: Colors.red.shade700),
-            title: Text('Eliminar',
-                style: TextStyle(color: Colors.red.shade700)),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-      ],
     );
   }
 

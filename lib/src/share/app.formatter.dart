@@ -5,7 +5,9 @@ class AppFormatters {
 
   // --- Formateadores ---
   static final formatoMoneda = NumberFormat(
-    '\$ ###,##0', // <-- El patrón: Símbolo, espacio, y números
+    // Sin espacio tras el símbolo ("$4.992"), igual que getValorModena en
+    // el resto de la app.
+    '\$###,##0',
     'es_CL', // <-- El locale para los separadores (punto de mil)
   );
 

@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import '../../share/app.navigator.dart';
 import '../../share/app_scaffold_key.dart';
 import '../../share/teclado.busqueda.producto.dart';
+import '../../share/app.formatter.dart';
 import '../../widget/connectivity_banner.widget.dart';
+import '../../widget/lista.widgets.dart';
 
 class ProductosPage extends StatefulWidget {
   final bool isForSelection;
@@ -94,8 +96,20 @@ class _ProductosPageState extends State<ProductosPage> {
                       }
 
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                            child: Text('No existen Productos a mostrar.'));
+                        return RefreshIndicator(
+                          onRefresh: getListaProductosRefrescar,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              EstadoVacioLista(
+                                icono: Icons.inventory_2_outlined,
+                                titulo: 'No hay productos para mostrar',
+                                mensaje:
+                                    'Desliza hacia abajo para volver a cargarlos.',
+                              ),
+                            ],
+                          ),
+                        );
                       }
 
                       // 3. LA LISTA COMPLETA VIENE DIRECTAMENTE DEL STREAM
@@ -178,14 +192,25 @@ class _ProductosPageState extends State<ProductosPage> {
   Widget _creaListaProductos(
       BuildContext context, List<ProductosModel> listaProducto) {
     if (listaProducto.length == 0) {
-      return const Center(
-        child: Text('No existen Productos a mostrar.'),
+      // Solo llega vacía por la búsqueda: sin productos se corta antes.
+      return ListView(
+        children: [
+          EstadoVacioLista(
+            icono: Icons.search_off,
+            titulo:
+                'No hay productos que coincidan con "${controller.text.trim()}"',
+            textoAccion: 'Limpiar búsqueda',
+            accionPrincipal: false,
+            onAccion: () => setState(() => controller.clear()),
+          ),
+        ],
       );
     }
 
     return RefreshIndicator(
       onRefresh: getListaProductosRefrescar,
       child: ListView.builder(
+        padding: const EdgeInsets.only(top: 4, bottom: 16),
         itemCount: listaProducto.length,
         itemBuilder: (context, i) {
           return _creaCard(listaProducto[i]);
@@ -194,85 +219,63 @@ class _ProductosPageState extends State<ProductosPage> {
     );
   }
 
-  _creaCard(ProductosModel producto) {
-    final stock = producto.stock > 0 ? producto.stock : 0;
-    return Card(
-      child: ListTile(
-          leading: CircleAvatar(
-            radius: 20,
-            child: const Icon(Icons.card_giftcard),
-            backgroundColor: colorRojoBase(),
-            foregroundColor: Colors.white,
-          ),
-          title: Text(
-            producto.descripcion,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15.0,
-              color: Colors.black,
-            ),
-          ),
-          subtitle: Column(
-            mainAxisSize: MainAxisSize.min,
+  Widget _creaCard(ProductosModel producto) {
+    final stock = producto.stock > 0 ? producto.stock : 0.0;
+    final estiloSecundario =
+        TextStyle(fontSize: 14, color: Colors.grey.shade700);
+    // Precio en formato chileno, como en el resto de la app ("$1.234").
+    // Si el precio trae decimales se muestran, para no redondear a escondidas.
+    final decimales = producto.ventaneto % 1 == 0 ? 0 : 2;
+    return TarjetaLista(
+      padding: const EdgeInsets.all(12),
+      onTap: widget.isForSelection ? () => AppNavigator.pop(producto) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(producto.descripcion.trim(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 2),
+          Text('Cód. ${producto.articulo.trim()} · ${producto.unidad}',
+              style: estiloSecundario),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  const Text(
-                    'Precio:',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '\$${producto.ventaneto.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text(
-                    'Stock:',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${stock.toStringAsFixed(2)} ${producto.unidad}',
-                    style: TextStyle(
+              // Expanded (no Flexible + Spacer): el texto de stock ocupa todo
+              // el espacio libre y el precio queda pegado a la derecha en
+              // todas las filas, igual que cuando va la cápsula.
+              if (stock > 0)
+                Expanded(
+                  child: Text(
+                      'Stock ${AppFormatters.formatoCantidad.format(stock)}'
+                      '${producto.numbered ? ' · ${producto.pieces.toStringAsFixed(0)} pz' : ''}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: estiloSecundario),
+                )
+              else ...[
+                const Capsula(
+                    texto: 'Sin stock',
+                    color: Colors.red,
+                    icono: Icons.block),
+                const Spacer(),
+              ],
+              const SizedBox(width: 8),
+              Text(getValorModena(producto.ventaneto, decimales),
+                  style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: stock > 0 ? Colors.blueAccent : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-              if (producto.numbered)
-                Row(
-                  children: [
-                    const Text(
-                      'Piezas:',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '${producto.pieces.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: producto.pieces > 0
-                            ? Colors.blueAccent
-                            : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
+                      fontFeatures: [FontFeature.tabularFigures()])),
+              const SizedBox(width: 4),
+              Text('neto',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
             ],
           ),
-          onTap: () {
-            if (widget.isForSelection) {
-              AppNavigator.pop(producto);
-            } else {
-              // Tu acción original
-            }
-          }),
+        ],
+      ),
     );
   }
 
