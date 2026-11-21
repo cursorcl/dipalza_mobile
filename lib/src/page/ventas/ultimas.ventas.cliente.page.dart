@@ -8,6 +8,7 @@ import 'package:dipalza_movil/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import '../../share/app_scaffold_key.dart';
+import '../cliente/clientes.page.dart';
 
 class UltimasVentasClientePage extends StatefulWidget {
   const UltimasVentasClientePage({Key? key}) : super(key: key);
@@ -21,22 +22,17 @@ class _UltimasVentasClientePageState extends State<UltimasVentasClientePage> {
   ClientesModel? _cliente;
   Future<List<VentaModel>>? _ventasFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    // Se difiere hasta después del primer frame: llamar a Navigator mientras
-    // este widget todavía se está construyendo deja el Navigator en un
-    // estado bloqueado (_debugLocked) que revienta en la próxima operación
-    // de navegación real (ver login.page.dart, que usa el mismo patrón).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _seleccionarCliente();
-    });
-  }
+  // Antes, al abrir la pantalla se empujaba la página de selección de
+  // clientes (con flecha de volver) y, al volver, quedaba una pantalla casi
+  // vacía. Ahora la lista de clientes es el primer paso de esta misma
+  // pantalla, con ☰ como las demás opciones del menú.
 
-  Future<void> _seleccionarCliente() async {
-    final cliente = await AppNavigator.pushNamed<ClientesModel>(
-        AppRoutes.clientesSeleccion);
-    if (cliente == null) return;
+  void _cambiarCliente() => setState(() {
+        _cliente = null;
+        _ventasFuture = null;
+      });
+
+  void _seleccionarCliente(ClientesModel cliente) {
     setState(() {
       _cliente = cliente;
       _ventasFuture =
@@ -54,6 +50,10 @@ class _UltimasVentasClientePageState extends State<UltimasVentasClientePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_cliente == null) {
+      return ClientesPage(
+          titulo: 'Últimas Ventas', onSeleccionado: _seleccionarCliente);
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -65,29 +65,18 @@ class _UltimasVentasClientePageState extends State<UltimasVentasClientePage> {
         centerTitle: true,
         backgroundColor: colorRojoBase(),
         title: Text(
-          _cliente == null ? 'Últimas Ventas' : _cliente!.razon,
+          _cliente!.razon.trim(),
           style: const TextStyle(color: Colors.white),
         ),
-        actions: _cliente == null
-            ? null
-            : [
-                IconButton(
-                  icon: const Icon(Icons.person_search),
-                  tooltip: 'Cambiar cliente',
-                  onPressed: _seleccionarCliente,
-                ),
-              ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_search),
+            tooltip: 'Cambiar cliente',
+            onPressed: _cambiarCliente,
+          ),
+        ],
       ),
-      body: _cliente == null ? _creaSinCliente() : _creaConCliente(),
-    );
-  }
-
-  Widget _creaSinCliente() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: _seleccionarCliente,
-        child: const Text('Seleccionar Cliente'),
-      ),
+      body: _creaConCliente(),
     );
   }
 
