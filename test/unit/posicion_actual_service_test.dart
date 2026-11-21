@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dipalza_movil/src/services/posicion_actual_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -72,5 +74,56 @@ void main() {
     expect(conPosicion({'idVenta': 1}, _actual),
         {'idVenta': 1, 'latitud': -33.45, 'longitud': -70.66});
     expect(conPosicion({'idVenta': 1}, null), {'idVenta': 1});
+  });
+
+  test('descarta la última conocida si tiene más de 5 minutos', () async {
+    final ahora = DateTime(2026, 11, 21, 10, 0);
+    final service = PosicionActualService(
+      tienePermiso: () async => true,
+      actual: () async => throw Exception('GPS apagado'),
+      ultimaConocida: () async => PosicionVenta(
+          latitud: -33.40, longitud: -70.60, tomadaEn: ahora.subtract(const Duration(minutes: 6))),
+      ahora: () => ahora,
+    );
+
+    expect(await service.obtener(), isNull);
+  });
+
+  test('acepta la última conocida reciente', () async {
+    final ahora = DateTime(2026, 11, 21, 10, 0);
+    final reciente = PosicionVenta(
+        latitud: -33.40, longitud: -70.60, tomadaEn: ahora.subtract(const Duration(minutes: 2)));
+    final service = PosicionActualService(
+      tienePermiso: () async => true,
+      actual: () async => throw Exception('GPS apagado'),
+      ultimaConocida: () async => reciente,
+      ahora: () => ahora,
+    );
+
+    expect(await service.obtener(), reciente);
+  });
+
+  test('si la última conocida se cuelga, obtener termina igual con null', () async {
+    final service = PosicionActualService(
+      tienePermiso: () async => true,
+      actual: () => Completer<PosicionVenta?>().future,
+      ultimaConocida: () => Completer<PosicionVenta?>().future,
+      tope: const Duration(milliseconds: 50),
+    );
+
+    final inicio = DateTime.now();
+    expect(await service.obtener(), isNull);
+    expect(DateTime.now().difference(inicio), lessThan(const Duration(seconds: 2)));
+  });
+
+  test('si la consulta de permiso se cuelga, obtener termina igual con null', () async {
+    final service = PosicionActualService(
+      tienePermiso: () => Completer<bool>().future,
+      actual: () async => _actual,
+      ultimaConocida: () async => _ultima,
+      tope: const Duration(milliseconds: 50),
+    );
+
+    expect(await service.obtener(), isNull);
   });
 }
