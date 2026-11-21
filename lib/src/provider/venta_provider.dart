@@ -11,10 +11,14 @@ import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 
 import '../model/numerado_model.dart';
 import '../services/api_client.dart';
+import '../services/posicion_actual_service.dart';
 
 class VentaProvider {
   static final VentaProvider ventaProvider = VentaProvider._();
   final _dio = ApiClient().dio;
+  // Posición del celular al grabar el encabezado (inicio o reapertura) y al
+  // finalizar; si no hay GPS se envía sin posición, nunca bloquea la venta.
+  final _posicionActual = PosicionActualService();
 
   VentaProvider._() {
     //
@@ -24,9 +28,10 @@ class VentaProvider {
 
   Future<VentaModel> saveVentaEncabezado(VentaModel ventaModel) async {
     try {
+      final posicion = await _posicionActual.obtener();
       final response = await _dio.post(
         '/api/ventas/encabezado',
-        data: VentaModel.toJson(ventaModel),
+        data: jsonEncode(conPosicion(ventaModel.toMap(), posicion)),
       );
 
       return VentaModel.fromMap(response.data);
@@ -226,10 +231,11 @@ class VentaProvider {
       VentaModel venta, EstadoVenta estadoVenta) async {
 
     try {
-      final estadoVentaQuery = {
+      final posicion = await _posicionActual.obtener();
+      final estadoVentaQuery = conPosicion({
         "idVenta": venta.id,
         "estadoVenta": estadoVenta.name
-      };
+      }, posicion);
       final response = await _dio.post('/api/ventas/updateEstadoVenta',
           data: jsonEncode(estadoVentaQuery));
 

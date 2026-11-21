@@ -6,6 +6,7 @@ import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/services/locator.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
+import 'package:dipalza_movil/src/utils/envio_unico.dart';
 import 'package:dipalza_movil/src/utils/utils.dart'; // Para colorRojoBase() y getFormatRut()
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -36,6 +37,11 @@ class _VentaEncabezadoEdicionPageState
   final ClientesBloc _clientesBloc = ClientesBloc();
   TextEditingController? _clienteController;
   bool _estaCargando = false;
+  // Grabar el encabezado espera hasta ~5 s por el GPS: sin este bloqueo un
+  // segundo toque en "Detalle Venta" mandaba otro POST y creaba dos ventas.
+  late final EnvioUnico _grabacion = EnvioUnico(alCambiar: (_) {
+    if (mounted) setState(() {});
+  });
   ClientesModel? _clienteSeleccionado;
   List<CondicionVentaModel> _listaCondicionesVenta = [];
   CondicionVentaModel? _condicionSeleccionada;
@@ -122,17 +128,24 @@ class _VentaEncabezadoEdicionPageState
                   _buildCondicionVentaModelSelector(),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    icon: const Icon(Icons.arrow_forward),
-                    label: const Text('Detalle Venta'),
+                    icon: _grabacion.enCurso
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.arrow_forward),
+                    label: Text(_grabacion.enCurso ? 'Grabando...' : 'Detalle Venta'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorRojoBase(), // Usando tu color
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       foregroundColor: Colors.white,
                       textStyle: const TextStyle(fontSize: 18),
                     ),
-                    onPressed: (!_esModificacion && _clienteSeleccionado == null)
-                        ? null // Deshabilita el botón si no hay cliente
-                        : () async {
+                    onPressed: _grabacion.enCurso ||
+                            (!_esModificacion && _clienteSeleccionado == null)
+                        ? null // Deshabilita el botón si no hay cliente o ya está grabando
+                        : () => _grabacion.ejecutar(() async {
                             try {
                               await saveVenta();
                               if (!mounted) return;
@@ -152,7 +165,7 @@ class _VentaEncabezadoEdicionPageState
                                 ),
                               );
                             }
-                          },
+                          }),
                   ),
                 ],
               ),
