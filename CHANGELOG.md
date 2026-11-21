@@ -1,3 +1,10 @@
+# [2.19.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.18.0...v2.19.0) (2026-11-21)
+
+
+### Features
+
+* registra la posición al crear, editar y finalizar ventas ([#75](https://github.com/cursorcl/dipalza_mobile/issues/75)) ([539ae44](https://github.com/cursorcl/dipalza_mobile/commit/539ae44e6512c38ec8c3670cf16715cb3eb3144c))
+
 # [2.18.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.17.1...v2.18.0) (2026-11-21)
 
 
