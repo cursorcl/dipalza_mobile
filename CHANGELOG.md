@@ -1,3 +1,17 @@
+# [2.17.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.16.0...v2.17.0) (2026-11-21)
+
+
+### Bug Fixes
+
+* diálogos y botones del tema en rojo corporativo, no café ([#71](https://github.com/cursorcl/dipalza_mobile/issues/71)) ([9fbfb6d](https://github.com/cursorcl/dipalza_mobile/commit/9fbfb6dc16886d3603f9f64191bcb7a4ad2bd1d9))
+* Últimas Ventas se abre con el menú, como las demás opciones ([#70](https://github.com/cursorcl/dipalza_mobile/issues/70)) ([55de870](https://github.com/cursorcl/dipalza_mobile/commit/55de87055c5117cab03084499cc3a36125846776))
+
+
+### Features
+
+* misma apariencia en Clientes, Productos y Detalle de venta; rojo con mejor contraste ([#69](https://github.com/cursorcl/dipalza_mobile/issues/69)) ([9d1743d](https://github.com/cursorcl/dipalza_mobile/commit/9d1743df6f74d1fff914379d2c42947f7ed6cf92))
+* nueva apariencia de la lista de ventas ([#68](https://github.com/cursorcl/dipalza_mobile/issues/68)) ([d96d3e2](https://github.com/cursorcl/dipalza_mobile/commit/d96d3e26e45861acf65779900d101e576a5bd193))
+
 # [2.16.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.15.2...v2.16.0) (2026-11-21)
 
 
