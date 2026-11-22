@@ -11,8 +11,12 @@ class AppNavigator {
         .pushNamed<T>(routeName, arguments: arguments);
   }
 
+  /// Cierra la pantalla de arriba. Si no hay ninguna que cerrar (doble toque
+  /// que ya la cerró) no hace nada: antes lanzaba "Bad state: No element".
   static void pop<T>([T? result]) {
-    return navigatorKey.currentState!.pop(result);
+    final nav = navigatorKey.currentState;
+    if (nav == null || !nav.canPop()) return;
+    nav.pop(result);
   }
 
   static void popUntil(String routeName) {

@@ -240,7 +240,8 @@ Future<void> initializeService() async {
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       onStart: onStart,
-      autoStart: true,
+      // Se inicia abajo, solo si no está corriendo (ver iniciarServicioUbicacion).
+      autoStart: false,
       isForegroundMode: true,
       notificationChannelId: 'dipalza_location_channel',
       initialNotificationTitle: 'Dipalza en ejecución',
@@ -253,6 +254,14 @@ Future<void> initializeService() async {
       onBackground: onStart,
     ),
   );
+
+  // En iOS el arranque lo hace configure (autoStart de IosConfiguration).
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    await iniciarServicioUbicacion(
+      estaCorriendo: service.isRunning,
+      iniciar: service.startService,
+    );
+  }
 }
 void main() {
   runZonedGuarded(() async {

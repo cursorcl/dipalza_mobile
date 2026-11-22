@@ -35,13 +35,17 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
   final ProductsBloc _productosBloc = ProductsBloc();
 
   late TextEditingController _productoController;
-  late TextEditingController _cantidadController;
-  late TextEditingController _descuentoController;
+  // Se crean al construir el estado y no después de esperar al bloc: si el
+  // vendedor sale antes de que cargue, dispose() los encontraba sin crear
+  // (LateInitializationError).
+  final TextEditingController _cantidadController = TextEditingController(text: '0');
+  final TextEditingController _descuentoController = TextEditingController(text: '0');
 
-  late FocusNode _productoFocusNode;
-  late FocusNode _cantidadFocusNode;
-  late FocusNode _descuentoFocusNode;
-  late FocusNode _guardarFocusNode;
+  // El Autocomplete lo reemplaza por el suyo.
+  FocusNode _productoFocusNode = FocusNode();
+  final FocusNode _cantidadFocusNode = FocusNode();
+  final FocusNode _descuentoFocusNode = FocusNode();
+  final FocusNode _guardarFocusNode = FocusNode();
 
   ProductosModel? productoEnVenta = null;
 
@@ -74,19 +78,13 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
 
   Future<void> _setupPagina() async {
     await _productosBloc.initialLoadDone;
+    if (!mounted) return;
 
     final pref = PreferenciasUsuario();
     final d = widget.actualVentaDetalle;
 
-    _productoFocusNode = FocusNode();
-    _cantidadFocusNode = FocusNode();
-    _descuentoFocusNode = FocusNode();
-    _guardarFocusNode = FocusNode();
-
-    _cantidadController =
-        TextEditingController(text: d?.cantidad.toString() ?? '0');
-    _descuentoController = TextEditingController(
-        text: d?.porcentajeDescuento.toString() ?? '0'); // '0' por defecto
+    _cantidadController.text = d?.cantidad.toString() ?? '0';
+    _descuentoController.text = d?.porcentajeDescuento.toString() ?? '0'; // '0' por defecto
 
     if (d != null) {
       final String claveBusqueda = d.idProducto;
