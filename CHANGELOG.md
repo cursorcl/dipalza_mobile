@@ -1,3 +1,10 @@
+## [2.20.1](https://github.com/cursorcl/dipalza_mobile/compare/v2.20.0...v2.20.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* corrige los crashes reportados por Crashlytics ([#78](https://github.com/cursorcl/dipalza_mobile/issues/78)) ([ccd94d5](https://github.com/cursorcl/dipalza_mobile/commit/ccd94d5406df75dc6bb5ea9f9124ddcabbd93297))
+
 # [2.20.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.19.0...v2.20.0) (2026-11-22)
 
 
