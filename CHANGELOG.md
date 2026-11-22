@@ -1,3 +1,10 @@
+# [2.20.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.19.0...v2.20.0) (2026-11-22)
+
+
+### Features
+
+* diagnóstico remoto de los huecos del servicio GPS con Crashlytics ([#76](https://github.com/cursorcl/dipalza_mobile/issues/76)) ([df2de13](https://github.com/cursorcl/dipalza_mobile/commit/df2de130f378de39e48d0f95c30cbb36c7fc8673))
+
 # [2.19.0](https://github.com/cursorcl/dipalza_mobile/compare/v2.18.0...v2.19.0) (2026-11-21)
 
 
