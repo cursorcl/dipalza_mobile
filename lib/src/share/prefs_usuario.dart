@@ -165,6 +165,22 @@ class PreferenciasUsuario {
         : '$servidorEsquema://$host:$puerto';
   }
 
+  /// Hora del último ciclo del servicio GPS en segundo plano. Se persiste en
+  /// cada ciclo para detectar, al reiniciarse el servicio, cuánto tiempo
+  /// estuvo detenido (ver DiagnosticoGps).
+  DateTime? get ultimoCicloGps {
+    final valor = _prefs.getString('ultimoCicloGps');
+    return valor == null ? null : DateTime.tryParse(valor);
+  }
+
+  set ultimoCicloGps(DateTime? value) {
+    if (value == null) {
+      _prefs.remove('ultimoCicloGps');
+    } else {
+      _prefs.setString('ultimoCicloGps', value.toIso8601String());
+    }
+  }
+
   String get ruta {
     return _prefs.getString('ruta') ?? '';
   }
