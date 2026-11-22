@@ -27,6 +27,7 @@ class _ProductosPageState extends State<ProductosPage> {
   TextEditingController controller = new TextEditingController();
   final List<ProductosModel> _searchResult = [];
   bool _showSearch = false;
+  bool _seleccionado = false;
 
   @override
   void initState() {
@@ -219,6 +220,14 @@ class _ProductosPageState extends State<ProductosPage> {
     );
   }
 
+  /// Devuelve el producto elegido. Un segundo toque mientras la página se
+  /// cierra se ignora: si no, cerraba también la pantalla de abajo.
+  void _seleccionar(ProductosModel producto) {
+    if (_seleccionado) return;
+    _seleccionado = true;
+    AppNavigator.pop(producto);
+  }
+
   Widget _creaCard(ProductosModel producto) {
     final stock = producto.stock > 0 ? producto.stock : 0.0;
     final estiloSecundario =
@@ -228,7 +237,7 @@ class _ProductosPageState extends State<ProductosPage> {
     final decimales = producto.ventaneto % 1 == 0 ? 0 : 2;
     return TarjetaLista(
       padding: const EdgeInsets.all(12),
-      onTap: widget.isForSelection ? () => AppNavigator.pop(producto) : null,
+      onTap: widget.isForSelection ? () => _seleccionar(producto) : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

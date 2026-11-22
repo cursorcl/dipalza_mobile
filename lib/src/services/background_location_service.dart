@@ -7,6 +7,21 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 /// del canal de mensajería de flutter_background_service.
 const String kMensajeSesionExpirada = 'sessionExpired';
 
+/// Inicia el servicio de ubicación solo si no está corriendo.
+///
+/// Pedirle a Android que inicie un servicio en primer plano que ya corre
+/// hace que el plugin no vuelva a llamar a startForeground() y Android mata
+/// el proceso completo (ForegroundServiceDidNotStartInTimeException), con lo
+/// que también se corta el GPS. Pasaba cada vez que el vendedor volvía a abrir
+/// la app con el servicio vivo.
+Future<void> iniciarServicioUbicacion({
+  required Future<bool> Function() estaCorriendo,
+  required Future<bool> Function() iniciar,
+}) async {
+  if (await estaCorriendo()) return;
+  await iniciar();
+}
+
 /// Detiene el servicio de ubicación en segundo plano (logout / sesión
 /// expirada). Si el usuario vuelve a iniciar sesión sin reiniciar la app,
 /// el servicio permanece detenido hasta el próximo arranque en frío.

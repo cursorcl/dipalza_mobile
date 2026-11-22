@@ -261,6 +261,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
   }
 
   void _eliminarItem(BuildContext context, VentaDetalleModel item) {
+    var eliminando = false;
     showDialog(
       context: context,
       builder: (BuildContext ctx) {
@@ -277,12 +278,20 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
               child:
                   const Text('Eliminar', style: TextStyle(color: Colors.red)),
               onPressed: () async {
+                // Un segundo toque mientras el diálogo se cierra cerraba
+                // también esta pantalla.
+                if (eliminando) return;
+                eliminando = true;
+                // Se captura antes del await y con el context de la página:
+                // el [context] recibido es el de la acción deslizable, que ya
+                // puede estar desmontada cuando responde el server.
+                final messenger = ScaffoldMessenger.of(this.context);
                 Navigator.of(ctx).pop();
                 try {
                   await VentaProvider.ventaProvider.removeItemVenta(item.id);
                 } catch (e) {
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  messenger.showSnackBar(SnackBar(
                     content: Text(e is VentaRechazadaException
                         ? e.mensaje
                         : 'No se pudo eliminar el ítem: $e'),

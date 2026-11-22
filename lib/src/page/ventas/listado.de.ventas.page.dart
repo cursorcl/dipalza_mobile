@@ -402,6 +402,9 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   }
 
   Future<void> _showDialogRemoveItemVenta(BuildContext context, VentaModel venta) async {
+    // Un segundo toque en "Eliminar" mientras se espera al server se ignora:
+    // antes borraba dos veces y cerraba dos pantallas ("Bad state: No element").
+    var eliminando = false;
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -427,6 +430,8 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
               child:
               const Text('Eliminar', style: TextStyle(color: Colors.red)),
               onPressed: () async {
+                if (eliminando) return;
+                eliminando = true;
                 // Se capturan antes del await: el context del diálogo puede
                 // quedar desmontado mientras se espera la respuesta.
                 final messenger = ScaffoldMessenger.of(context);
@@ -456,7 +461,7 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
                 }
 
                 // 2. Cierra el diálogo y refresca la lista
-                navigator.pop();
+                if (navigator.canPop()) navigator.pop();
                 if (!mounted) return;
                 _cargarVentas();
               },
