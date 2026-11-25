@@ -43,6 +43,10 @@ class _AuthGateState extends State<AuthGate> {
 
     // Asumimos inválido por defecto
     bool isSessionValid = false;
+    // Sin señal no se puede renovar, pero eso no invalida la sesión guardada:
+    // antes se borraban las credenciales y el vendedor quedaba en el login,
+    // donde sin red no puede volver a ingresar.
+    bool sinConexion = false;
 
     if (refreshToken.isNotEmpty) {
       try {
@@ -53,6 +57,10 @@ class _AuthGateState extends State<AuthGate> {
           final resultado = await _apiClient.renovarToken();
           if (resultado.exitoso && !resultado.mustChangePassword) {
             isSessionValid = true;
+          } else if (resultado.sinConexion) {
+            developer.log('Sin conexión al renovar: se entra con la sesión guardada', name: 'AuthGate');
+            isSessionValid = true;
+            sinConexion = true;
           } else {
             // La renovación falló, o tuvo éxito pero el usuario todavía
             // tiene pendiente el cambio de clave obligatorio: no debe
@@ -81,7 +89,8 @@ class _AuthGateState extends State<AuthGate> {
       // (.../vendedores/{codigo}//rutas) y el backend responde 400. Forzamos
       // un login explícito para que 'tipo' quede guardado correctamente.
       isSessionValid = false;
-    } else if (isSessionValid) {
+    } else if (isSessionValid && !sinConexion) {
+      // Sin señal se omite: la consulta solo esperaría otro tiempo agotado.
       try {
         final rutas = await VendedorRutaProvider()
             .obtenerRutasAsignadas(prefs.vendedor, prefs.tipo);

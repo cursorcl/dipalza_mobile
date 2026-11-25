@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dipalza_movil/src/page/login/auth_gate.dart';
 import 'package:dipalza_movil/src/services/api_client.dart';
+import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 
@@ -68,10 +70,12 @@ void main() {
   late MockApiClient mockApiClient;
   late PreferenciasUsuario prefs;
 
-  setUp(() {
+  setUp(() async {
     secureStorage.install();
+    SharedPreferences.setMockInitialValues({});
     mockApiClient = MockApiClient();
     prefs = PreferenciasUsuario();
+    await prefs.initPrefs();
   });
 
   tearDown(() async {
@@ -81,6 +85,7 @@ void main() {
 
   Widget crearWidgetDePrueba() {
     return MaterialApp(
+      navigatorKey: AppNavigator.navigatorKey,
       home: AuthGate(apiClient: mockApiClient),
       routes: {
         AppRoutes.login: (_) =>
@@ -114,5 +119,45 @@ void main() {
     expect(prefs.refreshToken, isEmpty);
 
     verify(() => mockApiClient.renovarToken()).called(1);
+  });
+
+  testWidgets(
+      'sin señal al abrir la app: entra a Home con la sesión guardada '
+      'y no borra las credenciales', (tester) async {
+    final tokenValido =
+        _crearJwtConExpiracion(DateTime.now().add(const Duration(hours: 1)));
+    prefs.refreshToken = tokenValido;
+    prefs.tipo = '0';
+
+    when(() => mockApiClient.renovarToken()).thenAnswer(
+      (_) async => const RenovarTokenResultado(exitoso: false, sinConexion: true),
+    );
+
+    await tester.pumpWidget(crearWidgetDePrueba());
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home (stub)'), findsOneWidget);
+    expect(prefs.refreshToken, tokenValido);
+  });
+
+  testWidgets(
+      'si el server rechaza la renovación, va a login y borra las credenciales',
+      (tester) async {
+    final tokenValido =
+        _crearJwtConExpiracion(DateTime.now().add(const Duration(hours: 1)));
+    prefs.refreshToken = tokenValido;
+    prefs.tipo = '0';
+
+    when(() => mockApiClient.renovarToken()).thenAnswer(
+      (_) async => const RenovarTokenResultado(exitoso: false),
+    );
+
+    await tester.pumpWidget(crearWidgetDePrueba());
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('LoginPage (stub)'), findsOneWidget);
+    expect(prefs.refreshToken, isEmpty);
   });
 }

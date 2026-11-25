@@ -219,9 +219,11 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
     // Lógica para navegar a una pantalla de edición
     AppNavigator.pushNamed(AppRoutes.ventaItemEdicion,
         arguments: {'actualVenta': _venta}).then((ventaActualizada) {
-      if (ventaActualizada != null) {
+      // Solo una venta: si vuelve otra cosa (p. ej. un producto de una pantalla
+      // cerrada de más), se ignora en vez de caerse la app.
+      if (ventaActualizada is VentaModel) {
         setState(() {
-          _venta = ventaActualizada as VentaModel;
+          _venta = ventaActualizada;
           _detalles = _venta.detalles;
         });
       }
@@ -234,9 +236,11 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
     AppNavigator.pushNamed(AppRoutes.ventaItemEdicion,
             arguments: {'actualVentaDetalle': item, 'actualVenta': _venta})
         .then((ventaActualizada) {
-      if (ventaActualizada != null) {
+      // Solo una venta: si vuelve otra cosa (p. ej. un producto de una pantalla
+      // cerrada de más), se ignora en vez de caerse la app.
+      if (ventaActualizada is VentaModel) {
         setState(() {
-          _venta = ventaActualizada as VentaModel;
+          _venta = ventaActualizada;
           _detalles = _venta.detalles;
         });
       }
