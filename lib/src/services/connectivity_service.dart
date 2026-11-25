@@ -34,8 +34,13 @@ class ConnectivityService with ChangeNotifier {
       newStatus = isServerOnline ? ServerStatus.online : ServerStatus.offline;
     }
 
-    if (newStatus != _status) {
-      _status = newStatus;
+    fijarEstado(newStatus);
+  }
+
+  @visibleForTesting
+  void fijarEstado(ServerStatus nuevo) {
+    if (nuevo != _status) {
+      _status = nuevo;
       notifyListeners();
     }
   }

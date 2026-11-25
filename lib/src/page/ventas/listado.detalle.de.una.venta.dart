@@ -1,10 +1,12 @@
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/page/ventas/venta.item.detelle.view.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
-import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/alert_util.dart' as alertUtil;
 import 'package:dipalza_movil/src/utils/utils.dart';
+import 'package:dipalza_movil/src/utils/mensaje_error.dart';
+import 'package:dipalza_movil/src/widget/error_carga.widget.dart';
+import 'package:dipalza_movil/src/widget/recarga_al_volver_conexion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -27,7 +29,14 @@ class ListadoDetalleDeUnaVentaPage extends StatefulWidget {
   _ListaVentasPageState createState() => _ListaVentasPageState();
 }
 
-class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
+class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage>
+    with RecargaAlVolverConexion {
+  /// Volvió la señal: si los productos no se pudieron cargar, se reintenta.
+  @override
+  void alVolverConexion() {
+    if (_errorCargaDetalles != null) _cargarDetalles();
+  }
+
   List<VentaDetalleModel> _detalles = [];
   bool _cargandoDetalles = true;
   Object? _errorCargaDetalles;
@@ -126,20 +135,10 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_errorCargaDetalles != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 60),
-            const SizedBox(height: 10),
-            Text('Ocurrió un error al cargar: $_errorCargaDetalles',
-                textAlign: TextAlign.center),
-            ElevatedButton(
-              onPressed: _cargarDetalles,
-              child: const Text("Reintentar"),
-            ),
-          ],
-        ),
+      return ErrorCarga(
+        error: _errorCargaDetalles!,
+        accion: 'cargar los productos de la venta',
+        onReintentar: _cargarDetalles,
       );
     }
     return Stack(children: <Widget>[
@@ -258,7 +257,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
       setState(() => _finalizando = false);
       await alertUtil.showAlertDialog(
         context,
-        'No se pudo finalizar la venta. Revisa tu conexión e intenta nuevamente.',
+        mensajeParaVendedor(e, accion: 'finalizar la venta'),
         Icons.error_outline,
       );
     }
@@ -296,9 +295,7 @@ class _ListaVentasPageState extends State<ListadoDetalleDeUnaVentaPage> {
                 } catch (e) {
                   if (!mounted) return;
                   messenger.showSnackBar(SnackBar(
-                    content: Text(e is VentaRechazadaException
-                        ? e.mensaje
-                        : 'No se pudo eliminar el ítem: $e'),
+                    content: Text(mensajeParaVendedor(e, accion: 'eliminar el producto')),
                     backgroundColor: Colors.red,
                   ));
                 }

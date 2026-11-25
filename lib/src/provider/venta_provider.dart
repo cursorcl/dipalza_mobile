@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dipalza_movil/src/model/clientes_model.dart';
 import 'package:dipalza_movil/src/model/venta_detalle_model.dart';
 import 'package:dipalza_movil/src/model/venta_model.dart';
+import 'package:dipalza_movil/src/provider/sin_conexion_exception.dart';
 import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
 import 'package:dipalza_movil/src/share/estado.venta.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
@@ -39,6 +40,8 @@ class VentaProvider {
       developer.log("No se ha grabado la venta ${ventaModel}");
       final rechazo = VentaRechazadaException.desde(e);
       if (rechazo != null) throw rechazo;
+      final sinConexion = SinConexionException.desde(e);
+      if (sinConexion != null) throw sinConexion;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -61,6 +64,8 @@ class VentaProvider {
       developer.log("No se ha grabado la venta ${ventaModel}");
       final rechazo = VentaRechazadaException.desde(e);
       if (rechazo != null) throw rechazo;
+      final sinConexion = SinConexionException.desde(e);
+      if (sinConexion != null) throw sinConexion;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -83,6 +88,8 @@ class VentaProvider {
       developer.log("No se ha grabado el detalle de venta ${registro}");
       final rechazo = VentaRechazadaException.desde(e);
       if (rechazo != null) throw rechazo;
+      final sinConexion = SinConexionException.desde(e);
+      if (sinConexion != null) throw sinConexion;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -115,6 +122,8 @@ class VentaProvider {
       developer.log("No se ha eliminado el item de venta ${itemVentaId}");
       final rechazo = VentaRechazadaException.desde(e);
       if (rechazo != null) throw rechazo;
+      final sinConexion = SinConexionException.desde(e);
+      if (sinConexion != null) throw sinConexion;
 
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
@@ -146,8 +155,10 @@ class VentaProvider {
       developer.log(
           "No se ha podido obtener la ventas para el vendedor ${prefs.vendedor} el día ${fechaFacturacion}  ",
           error: e);
+      // Antes devolvía una lista vacía: sin señal la pantalla decía "Aún no
+      // hay ventas". Ahora la pantalla muestra el error y "Reintentar".
+      throw SinConexionException.desde(e) ?? e;
     }
-    return [];
   }
 
   /**
@@ -164,8 +175,10 @@ class VentaProvider {
     } on DioException catch (e) {
       developer.log("Ocurrió un error al cargar las ventas detalle.  ",
           error: e);
+      // Sin señal no se debe mostrar la venta como vacía: el vendedor podría
+      // volver a cargar los productos y duplicarlos.
+      throw SinConexionException.desde(e) ?? e;
     }
-    return [];
   }
 
   Future<NumeradoModel> actualizarNumerado(NumeradoModel numerado) async {
@@ -244,6 +257,8 @@ class VentaProvider {
       developer.log(
           "Se ha producido un error al actualiar el estado de la venta ${venta.id}",
           error: e);
+      final sinConexion = SinConexionException.desde(e);
+      if (sinConexion != null) throw sinConexion;
       throw Exception(
           "Se ha producido un error al actualiar el estado de la ventae ${venta.id}: ${e}");
     }

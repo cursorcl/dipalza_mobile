@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
-import 'package:dipalza_movil/src/provider/venta_rechazada_exception.dart';
+import 'package:dipalza_movil/src/utils/mensaje_error.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/share/prefs_usuario.dart';
 import 'package:dipalza_movil/src/utils/alert_util.dart';
@@ -648,9 +648,16 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
     try {
       final producto = await _productosProvider.obtenerProducto(codigo);
       if (!mounted) return;
+      if (producto == null) {
+        // Sin señal (u otro error): se conserva el producto elegido de la
+        // lista guardada en el teléfono; antes quedaba en null y al grabar
+        // decía "No se pudo validar el producto".
+        _mostrarError('No se pudo consultar el stock. Revisa la señal.');
+        return;
+      }
       productoEnVenta = producto;
 
-      if (producto != null) {
+      {
         _productosBloc.updatePorduct(producto);
         _esNumerado = producto.numbered;
         _precioLista1 = producto.ventaneto;
@@ -672,7 +679,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       }
     } catch (e) {
       if (!mounted) return;
-      _mostrarError('Error al cargar stock: $e');
+      _mostrarError(mensajeParaVendedor(e, accion: 'consultar el stock'));
       setState(() => _stockDisponible = 0);
     } finally {
       if (mounted) setState(() => _estaCargandoStock = false);
@@ -694,6 +701,10 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
 
   void _actualizarProductoSeleccionado(dynamic producto) {
     setState(() {
+      // El producto de la lista guardada en el teléfono queda como base:
+      // si la consulta de stock al server falla (sin señal), se puede grabar
+      // igual con estos datos en vez de "No se pudo validar el producto".
+      if (producto is ProductosModel) productoEnVenta = producto;
       _productoId = producto.articulo;
       _productoController.text = producto.descripcion;
       _precioLista1 = producto.ventaneto;
@@ -758,7 +769,7 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       // más abajo: stockReal se calcula igual con productoEnVenta). Solo si
       // sigue cargando (usuario guardó muy rápido) se espera el fetch en curso.
       final producto = _estaCargandoStock
-          ? await _productosProvider.obtenerProducto(codigoProducto)
+          ? await _productosProvider.obtenerProducto(codigoProducto) ?? productoEnVenta
           : productoEnVenta;
       if (!mounted) return;
       if (producto == null) {
@@ -777,9 +788,9 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
 
       _productosBloc.updatePorduct(producto);
 
-      var stockReal = productoEnVenta!.stock - productoEnVenta!.stockVentas;
+      var stockReal = producto.stock - producto.stockVentas;
       if (_esNumerado) {
-        stockReal = productoEnVenta!.pieces - productoEnVenta!.piezasVentas;
+        stockReal = producto.pieces - producto.piezasVentas;
       }
       setState(() => _stockDisponible = stockReal);
       final ventaId = widget.actualVenta == null ? -1 : widget.actualVenta!.id;
@@ -822,9 +833,11 @@ class _VentaEdicionItemDetalleState extends State<VentaEdicionItemDetalle> {
       if (!mounted) return;
       AppNavigator.pop(ventaModel);
     } catch (e, s) {
+      developer.log('No se pudo grabar el producto', error: e, stackTrace: s);
       if (!mounted) return;
+      // Antes, salvo un rechazo del server, mostraba el stack trace.
       showAlertDialog(context,
-          e is VentaRechazadaException ? e.mensaje : s.toString(), Icons.error);
+          mensajeParaVendedor(e, accion: 'grabar el producto'), Icons.error);
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/share/app.formatter.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
+import 'package:dipalza_movil/src/widget/error_carga.widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -77,6 +78,13 @@ class _ListadoDetalleDeUltimaVentaPageState
           AsyncSnapshot<List<VentaDetalleModel>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return ErrorCarga(
+            error: snapshot.error!,
+            accion: 'cargar los productos de la venta',
+            onReintentar: () => setState(() {}),
+          );
         }
         if (snapshot.hasData) {
           return Column(

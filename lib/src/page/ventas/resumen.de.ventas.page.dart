@@ -2,6 +2,7 @@ import 'package:dipalza_movil/src/model/resumen_ventas_calculator.dart';
 import 'package:dipalza_movil/src/model/venta_model.dart';
 import 'package:dipalza_movil/src/provider/venta_provider.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
+import 'package:dipalza_movil/src/widget/error_carga.widget.dart';
 import 'package:flutter/material.dart';
 
 import '../../share/app_scaffold_key.dart';
@@ -57,29 +58,10 @@ class _ResumenDeVentasPageState extends State<ResumenDeVentasPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 10),
-                const Text('Ocurrió un error al cargar:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _cargarResumen,
-                  child: const Text("Reintentar"),
-                )
-              ],
-            ),
-          );
+          return ErrorCarga(
+              error: snapshot.error!,
+              accion: 'cargar el resumen de ventas',
+              onReintentar: _cargarResumen);
         } else if (snapshot.hasData) {
           final resumen = ResumenVentasCalculator.calcular(snapshot.data!);
           return ListView(

@@ -5,6 +5,7 @@ import 'package:dipalza_movil/src/share/app.formatter.dart';
 import 'package:dipalza_movil/src/share/app.navigator.dart';
 import 'package:dipalza_movil/src/share/app_routes.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
+import 'package:dipalza_movil/src/widget/error_carga.widget.dart';
 import 'package:flutter/material.dart';
 
 import '../../share/app_scaffold_key.dart';
@@ -89,29 +90,10 @@ class _UltimasVentasClientePageState extends State<UltimasVentasClientePage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 10),
-                const Text('Ocurrió un error al cargar:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _reintentar,
-                  child: const Text('Reintentar'),
-                )
-              ],
-            ),
-          );
+          return ErrorCarga(
+              error: snapshot.error!,
+              accion: 'cargar las ventas del cliente',
+              onReintentar: _reintentar);
         }
         final ventas = snapshot.data ?? [];
         if (ventas.isEmpty) {

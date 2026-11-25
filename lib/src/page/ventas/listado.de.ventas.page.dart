@@ -5,6 +5,8 @@ import 'package:dipalza_movil/src/share/estado.venta.dart';
 import 'package:dipalza_movil/src/utils/filtro_ventas.dart';
 import 'package:dipalza_movil/src/utils/presentacion_venta.dart';
 import 'package:dipalza_movil/src/utils/utils.dart';
+import 'package:dipalza_movil/src/widget/error_carga.widget.dart';
+import 'package:dipalza_movil/src/widget/recarga_al_volver_conexion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -21,7 +23,12 @@ class ListadeDeVentasPage extends StatefulWidget {
   _ListadoDeVentasPageState createState() => _ListadoDeVentasPageState();
 }
 
-class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
+class _ListadoDeVentasPageState extends State<ListadeDeVentasPage>
+    with RecargaAlVolverConexion {
+  /// Volvió la señal: recarga por si la lista quedó con el error de sin conexión.
+  @override
+  void alVolverConexion() => _cargarVentas();
+
   late Future<List<VentaModel>> _listaVentasFuture;
   int cantidadVentas = 0;
   final TextEditingController _buscarController = TextEditingController();
@@ -55,10 +62,17 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
   /// (con _cargarVentas() el FutureBuilder la cambiaría por el spinner
   /// central y el RefreshIndicator desaparecería a mitad del gesto).
   Future<void> _refrescarVentas() async {
-    final ventas = await VentaProvider.ventaProvider.obtenerListaVentas();
+    Future<List<VentaModel>> resultado;
+    try {
+      resultado = Future.value(await VentaProvider.ventaProvider.obtenerListaVentas());
+    } catch (e) {
+      // Sin señal: se muestra el error con "Reintentar" en vez de dejar
+      // la excepción sin manejar.
+      resultado = Future.error(e);
+    }
     if (!mounted) return;
     setState(() {
-      _listaVentasFuture = Future.value(ventas);
+      _listaVentasFuture = resultado;
     });
   }
 
@@ -123,29 +137,10 @@ class _ListadoDeVentasPageState extends State<ListadeDeVentasPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 10),
-                const Text('Ocurrió un error al cargar:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    '${snapshot.error}', // Esto nos dirá la verdad
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: _cargarVentas,
-                  child: const Text("Reintentar"),
-                )
-              ],
-            ),
-          );
+          return ErrorCarga(
+              error: snapshot.error!,
+              accion: 'cargar las ventas',
+              onReintentar: _cargarVentas);
         } else if (snapshot.hasData) {
           final nuevaCant = snapshot.data!.length;
           // Solo si cambió, actualiza el estado del padre post-frame
