@@ -223,7 +223,10 @@ class _ProductosPageState extends State<ProductosPage> {
   /// Devuelve el producto elegido. Un segundo toque mientras la página se
   /// cierra se ignora: si no, cerraba también la pantalla de abajo.
   void _seleccionar(ProductosModel producto) {
-    if (_seleccionado) return;
+    // Si esta lista ya no es la pantalla de arriba (se está cerrando con
+    // "atrás"), cerrar "la de arriba" cerraría la del ítem y le devolvería un
+    // producto donde se espera una venta (crash en la v2.20.1).
+    if (_seleccionado || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
     _seleccionado = true;
     AppNavigator.pop(producto);
   }
